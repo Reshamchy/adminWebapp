@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Social Ads Settings - FireAuth</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" rel="stylesheet" integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" crossorigin="anonymous">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            min-height: 100vh;
+            display: flex;
+            overflow-x: auto;
+            position: relative;
+            font-size: 16px;
+        }
+
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: -2;
+        }
+
+        .bg-animation::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, 
+                transparent 0%, 
+                rgba(255, 255, 255, 0.1) 25%, 
+                transparent 50%, 
+                rgba(255, 255, 255, 0.1) 75%, 
+                transparent 100%);
+            animation: shimmer 20s infinite linear;
+        }
+
+        @keyframes shimmer {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .geometric-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .shape {
+            position: absolute;
+            opacity: 0.1;
+            animation: float-shapes 15s infinite ease-in-out;
+        }
+
+        .shape:nth-child(1) {
+            top: 10%;
+            left: 10%;
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            border-radius: 20px;
+            animation-delay: 0s;
+        }
+
+        .shape:nth-child(2) {
+            top: 20%;
+            right: 15%;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(45deg, #4ecdc4, #44a08d);
+            border-radius: 50%;
+            animation-delay: 2s;
+        }
+
+        .shape:nth-child(3) {
+            bottom: 20%;
+            left: 20%;
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(45deg, #a8e6cf, #88d8c0);
+            border-radius: 30px;
+            animation-delay: 4s;
+        }
+
+        .shape:nth-child(4) {
+            bottom: 30%;
+            right: 10%;
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(45deg, #ffd93d, #ff6b6b);
+            border-radius: 15px;
+            animation-delay: 6s;
+        }
+
+        @keyframes float-shapes {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+
+        .sidebar {
+            width: 250px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(30px);
+            border-right: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            max-height: 100vh;
+            overflow-y: auto;
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.15);
+            z-index: 10;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+        }
+
+         .sidebar::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+
+        .sidebar h2 {
+            color: white;
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .sidebar a {
+            display: block;
+            color: white;
+            text-decoration: none;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .sidebar a:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateX(5px);
+        }
+
+        .sidebar a.active {
+            background: rgba(255, 71, 87, 0.3);
+        }
+
+        .main-content {
+            margin-left: 270px;
+            padding: 2rem 3rem;
+            width: calc(100% - 270px);
+            min-width: 700px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(30px);
+            border-radius: 25px;
+            padding: 2rem 3rem;
+            box-shadow: 
+                0 25px 45px rgba(0, 0, 0, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            animation: containerGlow 4s infinite alternate;
+            max-width: 90vw;
+            margin: 0 auto;
+        }
+
+        @keyframes containerGlow {
+            0% { box-shadow: 0 25px 45px rgba(0, 0, 0, 0.15), 0 0 30px rgba(102, 126, 234, 0.3); }
+            100% { box-shadow: 0 25px 45px rgba(0, 0, 0, 0.15), 0 0 50px rgba(118, 75, 162, 0.4); }
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .toast.show {
+            opacity: 1;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 40px;
+            height: 20px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: 0.4s;
+            border-radius: 20px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 2px;
+            bottom: 2px;
+            background-color: white;
+            transition: 0.4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #ff4757;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+
+        /* Media Queries */
+        @media screen and (min-width: 1024px) {
+            .main-content {
+                padding: 3rem 4rem;
+            }
+
+            .container {
+                padding: 3rem 4rem;
+                max-width: 85vw;
+            }
+        }
+
+        @media screen and (min-width: 1440px) {
+            .container {
+                max-width: 80vw;
+            }
+        }
+
+        @media screen and (min-width: 1920px) {
+            .container {
+                max-width: 75vw;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-animation"></div>
+    <div class="geometric-bg">
+        <div class="shape"></div>
+        <div class="shape"></div>
+        <div class="shape"></div>
+        <div class="shape"></div>
+    </div>
+
+    <div class="sidebar">
+        <h2>Admin Panel</h2>
+      <a href="adminstatictis.html">Dashboard</a>
+        <a href="user_rank.html">User Rankings</a>
+        <a href="config_coins.html">Configure Coins</a>
+        <a href="send_email.html">Send Email</a>
+        <a href="generate_bonus.html">Generate Bonus</a>
+        <a href="search.html">Search Users</a>
+        <a href="manage_withdrawal.html">Manage Withdrawals</a>
+        <a href="manage_users.html">Manage Users</a>
+        <a href="manage_coins.html">Manage Coins</a>
+        <a href="manage_staff_applications.html">Manage Staff Applications</a>
+        <a href="manage_suggestions.html">Manage Suggestions</a>
+         <a href="usdmanage.html">Manage Withdrawals Usd</a>
+        <a href="facebook&insta.html">Social Ads Settings</a>
+        <a href="yotube.html">YouTube Settings</a>
+        <a href="tiktok.html" class="active">TikTok Settings</a>
+        <a href="game.html" class="active">Manage Game</a>
+        <a href="movie.html" class="active">Manage Movie</a>
+        <a href="admin_diamond.html" class="active">Manage Diamonds</a>
+        <a href="admin_free_net.html" class="active">Manage Data Pack</a>
+        <a href="admin_subscription_approve.html" class="active">Manage Subscriptions</a>
+        <a href="change_password.html" class="active">Manage Password</a>
+        <a href="config_coins.html" class="active">Manage Config Coins</a>
+        <a href="deposit.html" class="active">Manage Deposit</a>
+        <a href="earn.html" class="active">Manage Earn</a>
+        <a href="generate_bonus.html" class="active">Manage Bonus Voucher</a>
+        <a href="manage_suggestions.html" class="active">Manage Suggestions Box</a>
+        <a href="minitask.html" class="active">Manage Mini Task</a>
+    </div>
+
+    <div class="main-content">
+        <div class="container">
+            <h3 class="text-2xl font-semibold text-red-500 mb-6 text-center">Social Ads Settings</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Facebook Settings -->
+                <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                    <h4 class="text-xl font-semibold text-white mb-4">Facebook Ads Settings</h4>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="text-white mb-2 block">Rewarded Points</label>
+                            <input id="facebookRewardedPointsInput" type="number" step="1" class="w-full p-2 rounded bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500" placeholder="Enter rewarded points">
+                        </div>
+                        <div>
+                            <label class="text-white mb-2 block">Interstitial Points</label>
+                            <input id="facebookInterstitialPointsInput" type="number" step="1" class="w-full p-2 rounded bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500" placeholder="Enter interstitial points">
+                        </div>
+                        <div>
+                            <label class="text-white mb-2 block">Rewarded Interval (ms)</label>
+                            <input id="facebookRewardedIntervalInput" type="number" step="1" class="w-full p-2 rounded bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500" placeholder="Enter rewarded interval">
+                        </div>
+                        <div>
+                            <label class="text-white mb-2 block">Interstitial Interval (ms)</label>
+                            <input id="facebookInterstitialIntervalInput" type="number" step="1" class="w-full p-2 rounded bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500" placeholder="Enter interstitial interval">
+                        </div>
+                        <div class="flex items-center">
+                            <label class="text-white mr-4">Open Link Enabled</label>
+                            <label class="switch">
+                                <input id="facebookOpenLinkSwitch" type="checkbox">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div>
+                            <label class="text-white mb-2 block">Open Link Time (ms)</label>
+                            <input id="facebookOpenLinkTimeInput" type="number" step="1" class="w-full p-2 rounded bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500" placeholder="Enter open link time">
+                        </div>
+                        <button id="saveFacebookButton" class="w-full bg-red-500 hover:bg-red-600 text-white p-2 rounded flex items-center justify-center">
+                            <i class="fas fa-save mr-2"></i> Save Facebook Settings
+                        </button>
+                    </div>
+                </div>
+                <!-- Instagram Settings -->
+                <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                    <h4 class="text-xl font-semibold text-white mb-4">Instagram Ads Settings</h4>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="text-white mb-2 block">Rewarded Points</label>
+                            <input id="instagramRewardedPointsInput" type="number" step="1" class="w-full p-2 rounded bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500" placeholder="Enter rewarded points">
+                        </div>
+                        <div>
+                            <label class="text-white mb-2 block">Interstitial Points</label>
+                            <input id="instagramInterstitialPointsInput" type="number" step="1" class="w-full p-2 rounded bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500" placeholder="Enter interstitial points">
+                        </div>
+                        <div>
+                            <label class="text-white mb-2 block">Rewarded Interval (ms)</label>
+                            <input id="instagramRewardedIntervalInput" type="number" step="1" class="w-full p-2 rounded bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500" placeholder="Enter rewarded interval">
+                        </div>
+                        <div>
+                            <label class="text-white mb-2 block">Interstitial Interval (ms)</label>
+                            <input id="instagramInterstitialIntervalInput" type="number" step="1" class="w-full p-2 rounded bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500" placeholder="Enter interstitial interval">
+                        </div>
+                        <div class="flex items-center">
+                            <label class="text-white mr-4">Open Link Enabled</label>
+                            <label class="switch">
+                                <input id="instagramOpenLinkSwitch" type="checkbox">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div>
+                            <label class="text-white mb-2 block">Open Link Time (ms)</label>
+                            <input id="instagramOpenLinkTimeInput" type="number" step="1" class="w-full p-2 rounded bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500" placeholder="Enter open link time">
+                        </div>
+                        <button id="saveInstagramButton" class="w-full bg-red-500 hover:bg-red-600 text-white p-2 rounded flex items-center justify-center">
+                            <i class="fas fa-save mr-2"></i> Save Instagram Settings
+                        </button>
+                    </div>
+                </div>
+                <!-- App Open Ads Settings -->
+                <div class="bg-gray-800 p-6 rounded-lg shadow-lg md:col-span-2">
+                    <h4 class="text-xl font-semibold text-white mb-4">App Open Ads Settings</h4>
+                    <div class="space-y-4">
+                        <div class="flex items-center">
+                            <label class="text-white mr-4">Ad Enabled</label>
+                            <label class="switch">
+                                <input id="switchAdControl" type="checkbox">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div>
+                            <label class="text-white mb-2 block">Duration (seconds)</label>
+                            <input id="editDuration" type="number" step="1" class="w-full p-2 rounded bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500" placeholder="Enter duration in seconds">
+                        </div>
+                        <button id="btnSaveAppOpenAds" class="w-full bg-red-500 hover:bg-red-600 text-white p-2 rounded flex items-center justify-center">
+                            <i class="fas fa-save mr-2"></i> Save App Open Ads
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="toast" id="toast"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { getDatabase, ref, get, set, update } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyD14wwgcUIyiPl_qXvx7CtQTO2DEy465II",
+            authDomain: "my-video-earn-app12.firebaseapp.com",
+            databaseURL: "https://my-video-earn-app12-default-rtdb.firebaseio.com",
+            projectId: "my-video-earn-app12",
+            storageBucket: "my-video-earn-app12.firebasestorage.app",
+            messagingSenderId: "967539655660",
+            appId: "1:967539655660:web:95e773e701d35a252936c9",
+            measurementId: "G-DPWBZT3RN5"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+        const facebookDatabase = ref(db, 'AdminFacebookSettings');
+        const instagramDatabase = ref(db, 'AdminInstagramSettings');
+
+        // UI Elements
+        const facebookRewardedPointsInput = document.getElementById('facebookRewardedPointsInput');
+        const facebookInterstitialPointsInput = document.getElementById('facebookInterstitialPointsInput');
+        const facebookRewardedIntervalInput = document.getElementById('facebookRewardedIntervalInput');
+        const facebookInterstitialIntervalInput = document.getElementById('facebookInterstitialIntervalInput');
+        const facebookOpenLinkSwitch = document.getElementById('facebookOpenLinkSwitch');
+        const facebookOpenLinkTimeInput = document.getElementById('facebookOpenLinkTimeInput');
+        const saveFacebookButton = document.getElementById('saveFacebookButton');
+
+        const instagramRewardedPointsInput = document.getElementById('instagramRewardedPointsInput');
+        const instagramInterstitialPointsInput = document.getElementById('instagramInterstitialPointsInput');
+        const instagramRewardedIntervalInput = document.getElementById('instagramRewardedIntervalInput');
+        const instagramInterstitialIntervalInput = document.getElementById('instagramInterstitialIntervalInput');
+        const instagramOpenLinkSwitch = document.getElementById('instagramOpenLinkSwitch');
+        const instagramOpenLinkTimeInput = document.getElementById('instagramOpenLinkTimeInput');
+        const saveInstagramButton = document.getElementById('saveInstagramButton');
+
+        const switchAdControl = document.getElementById('switchAdControl');
+        const editDuration = document.getElementById('editDuration');
+        const btnSaveAppOpenAds = document.getElementById('btnSaveAppOpenAds');
+        const toast = document.getElementById('toast');
+
+        // Show Toast Notification
+        function showToast(message) {
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Auth Check
+        onAuthStateChanged(auth, (user) => {
+            if (!user || user.email !== 'reshamchaudhary922@gmail.com') {
+                window.location.href = 'index.html';
+            }
+        });
+
+        // Load Settings from Firebase
+        async function loadSettingsFromFirebase(database, rewardedPointsInput, interstitialPointsInput, rewardedIntervalInput, interstitialIntervalInput, openLinkSwitch, openLinkTimeInput) {
+            try {
+                const snapshot = await get(database);
+                const data = snapshot.val() || {};
+                rewardedPointsInput.value = data.rewardedPoints || 10;
+                interstitialPointsInput.value = data.interstitialPoints || 5;
+                rewardedIntervalInput.value = data.rewardedInterval || 900000; // 15 mins
+                interstitialIntervalInput.value = data.interstitialInterval || 300000; // 5 mins
+                openLinkSwitch.checked = data.openLinkEnabled || false;
+                openLinkTimeInput.value = data.openLinkTime || 15000; // 15 secs
+
+                // Load app open ads settings (only for facebookDatabase)
+                if (database === facebookDatabase) {
+                    switchAdControl.checked = data.enabled || false;
+                    editDuration.value = data.durationInSeconds || 60;
+                }
+            } catch (error) {
+                showToast(`Failed to load settings: ${error.message}`);
+            }
+        }
+
+        // Save Settings to Firebase
+        async function saveSettingsToFirebase(database, rewardedPointsInput, interstitialPointsInput, rewardedIntervalInput, interstitialIntervalInput, openLinkEnabled, openLinkTimeInput, platform) {
+            try {
+                const rewardedPoints = parseInt(rewardedPointsInput.value);
+                const interstitialPoints = parseInt(interstitialPointsInput.value);
+                const rewardedInterval = parseInt(rewardedIntervalInput.value);
+                const interstitialInterval = parseInt(interstitialIntervalInput.value);
+                const openLinkTime = parseInt(openLinkTimeInput.value);
+
+                if (isNaN(rewardedPoints) || isNaN(interstitialPoints) || isNaN(rewardedInterval) || isNaN(interstitialInterval) || isNaN(openLinkTime)) {
+                    showToast('Please enter valid values for all fields.');
+                    return;
+                }
+
+                const settings = {
+                    rewardedPoints,
+                    interstitialPoints,
+                    rewardedInterval,
+                    interstitialInterval,
+                    openLinkEnabled,
+                    openLinkTime
+                };
+
+                await set(database, settings);
+                showToast(`${platform} settings updated successfully!`);
+            } catch (error) {
+                showToast(`Failed to save ${platform} settings: ${error.message}`);
+            }
+        }
+
+        // Save App Open Ad Settings
+        async function saveAppOpenAdSettings() {
+            const enabled = switchAdControl.checked;
+            const duration = parseInt(editDuration.value);
+
+            if (isNaN(duration) || duration <= 0) {
+                showToast('Duration must be positive!');
+                return;
+            }
+
+            const appOpenAdSettings = {
+                enabled,
+                durationInSeconds: duration
+            };
+
+            try {
+                await update(facebookDatabase, appOpenAdSettings);
+                showToast('App open ad settings updated!');
+            } catch (error) {
+                showToast(`Failed to update app open ad settings: ${error.message}`);
+            }
+        }
+
+        // Initialize Settings
+        loadSettingsFromFirebase(
+            facebookDatabase,
+            facebookRewardedPointsInput,
+            facebookInterstitialPointsInput,
+            facebookRewardedIntervalInput,
+            facebookInterstitialIntervalInput,
+            facebookOpenLinkSwitch,
+            facebookOpenLinkTimeInput
+        );
+
+        loadSettingsFromFirebase(
+            instagramDatabase,
+            instagramRewardedPointsInput,
+            instagramInterstitialPointsInput,
+            instagramRewardedIntervalInput,
+            instagramInterstitialIntervalInput,
+            instagramOpenLinkSwitch,
+            instagramOpenLinkTimeInput
+        );
+
+        // Button Listeners
+        saveFacebookButton.addEventListener('click', () => {
+            saveSettingsToFirebase(
+                facebookDatabase,
+                facebookRewardedPointsInput,
+                facebookInterstitialPointsInput,
+                facebookRewardedIntervalInput,
+                facebookInterstitialIntervalInput,
+                facebookOpenLinkSwitch.checked,
+                facebookOpenLinkTimeInput,
+                'Facebook'
+            );
+        });
+
+        saveInstagramButton.addEventListener('click', () => {
+            saveSettingsToFirebase(
+                instagramDatabase,
+                instagramRewardedPointsInput,
+                instagramInterstitialPointsInput,
+                instagramRewardedIntervalInput,
+                instagramInterstitialIntervalInput,
+                instagramOpenLinkSwitch.checked,
+                instagramOpenLinkTimeInput,
+                'Instagram'
+            );
+        });
+
+        btnSaveAppOpenAds.addEventListener('click', saveAppOpenAdSettings);
+
+        // Fallback for Font Awesome failure
+        window.addEventListener('load', () => {
+            if (!document.querySelector('.fa-save')) {
+                console.warn('Font Awesome icons not loaded, applying fallback text');
+                document.querySelectorAll('button').forEach(btn => {
+                    btn.textContent = btn.textContent.replace(/.*?\s/, '');
+                });
+            }
+        });
+    </script>
+</body>
+</html>

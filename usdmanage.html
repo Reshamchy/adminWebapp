@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>USD Redemption Requests - FireAuth</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" rel="stylesheet" integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" crossorigin="anonymous">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            min-height: 100vh;
+            display: flex;
+            overflow-x: auto;
+            position: relative;
+            font-size: 16px;
+        }
+
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: -2;
+        }
+
+        .bg-animation::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, 
+                transparent 0%, 
+                rgba(255, 255, 255, 0.1) 25%, 
+                transparent 50%, 
+                rgba(255, 255, 255, 0.1) 75%, 
+                transparent 100%);
+            animation: shimmer 20s infinite linear;
+        }
+
+        @keyframes shimmer {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .geometric-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .shape {
+            position: absolute;
+            opacity: 0.1;
+            animation: float-shapes 15s infinite ease-in-out;
+        }
+
+        .shape:nth-child(1) {
+            top: 10%;
+            left: 10%;
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            border-radius: 20px;
+            animation-delay: 0s;
+        }
+
+        .shape:nth-child(2) {
+            top: 20%;
+            right: 15%;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(45deg, #4ecdc4, #44a08d);
+            border-radius: 50%;
+            animation-delay: 2s;
+        }
+
+        .shape:nth-child(3) {
+            bottom: 20%;
+            left: 20%;
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(45deg, #a8e6cf, #88d8c0);
+            border-radius: 30px;
+            animation-delay: 4s;
+        }
+
+        .shape:nth-child(4) {
+            bottom: 30%;
+            right: 10%;
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(45deg, #ffd93d, #ff6b6b);
+            border-radius: 15px;
+            animation-delay: 6s;
+        }
+
+        @keyframes float-shapes {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+
+        .sidebar {
+            width: 250px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(30px);
+            border-right: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            max-height: 100vh;
+            overflow-y: auto;
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.15);
+            z-index: 10;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+        }
+
+        .sidebar::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .sidebar h2 {
+            color: white;
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .sidebar a {
+            display: block;
+            color: white;
+            text-decoration: none;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .sidebar a:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateX(5px);
+        }
+
+        .sidebar a.active {
+            background: rgba(255, 71, 87, 0.3);
+        }
+
+        .main-content {
+            margin-left: 270px;
+            padding: 2rem 3rem;
+            width: calc(100% - 270px);
+            min-width: 700px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(30px);
+            border-radius: 25px;
+            padding: 2rem 3rem;
+            box-shadow: 
+                0 25px 45px rgba(0, 0, 0, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            animation: containerGlow 4s infinite alternate;
+            max-width: 90vw;
+            margin: 0 auto;
+        }
+
+        @keyframes containerGlow {
+            0% { box-shadow: 0 25px 45px rgba(0, 0, 0, 0.15), 0 0 30px rgba(102, 126, 234, 0.3); }
+            100% { box-shadow: 0 25px 45px rgba(0, 0, 0, 0.15), 0 0 50px rgba(118, 75, 162, 0.4); }
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .toast.show {
+            opacity: 1;
+        }
+
+        #dialogOverlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #rejectionDialog, #detailsDialog {
+            background: #1f2937;
+            border-radius: 10px;
+            padding: 20px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .status-pending { color: #eab308; }
+        .status-approved { color: #22c55e; }
+        .status-rejected { color: #ef4444; }
+
+        /* Media Queries */
+        @media screen and (min-width: 1024px) {
+            .main-content {
+                padding: 3rem 4rem;
+            }
+
+            .container {
+                padding: 3rem 4rem;
+                max-width: 85vw;
+            }
+        }
+
+        @media screen and (min-width: 1440px) {
+            .container {
+                max-width: 80vw;
+            }
+        }
+
+        @media screen and (min-width: 1920px) {
+            .container {
+                max-width: 75vw;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-animation"></div>
+    <div class="geometric-bg">
+        <div class="shape"></div>
+        <div class="shape"></div>
+        <div class="shape"></div>
+        <div class="shape"></div>
+    </div>
+
+    <div class="sidebar">
+        <h2>Admin Panel</h2>
+      <a href="adminstatictis.html">Dashboard</a>
+        <a href="user_rank.html">User Rankings</a>
+        <a href="config_coins.html">Configure Coins</a>
+        <a href="send_email.html">Send Email</a>
+        <a href="generate_bonus.html">Generate Bonus</a>
+        <a href="search.html">Search Users</a>
+        <a href="manage_withdrawal.html">Manage Withdrawals</a>
+        <a href="manage_users.html">Manage Users</a>
+        <a href="manage_coins.html">Manage Coins</a>
+        <a href="manage_staff_applications.html">Manage Staff Applications</a>
+        <a href="manage_suggestions.html">Manage Suggestions</a>
+         <a href="usdmanage.html">Manage Withdrawals Usd</a>
+        <a href="facebook&insta.html">Social Ads Settings</a>
+        <a href="yotube.html">YouTube Settings</a>
+        <a href="tiktok.html" class="active">TikTok Settings</a>
+        <a href="game.html" class="active">Manage Game</a>
+        <a href="movie.html" class="active">Manage Movie</a>
+        <a href="admin_diamond.html" class="active">Manage Diamonds</a>
+        <a href="admin_free_net.html" class="active">Manage Data Pack</a>
+        <a href="admin_subscription_approve.html" class="active">Manage Subscriptions</a>
+        <a href="change_password.html" class="active">Manage Password</a>
+        <a href="config_coins.html" class="active">Manage Config Coins</a>
+        <a href="deposit.html" class="active">Manage Deposit</a>
+        <a href="earn.html" class="active">Manage Earn</a>
+        <a href="generate_bonus.html" class="active">Manage Bonus Voucher</a>
+        <a href="manage_suggestions.html" class="active">Manage Suggestions Box</a>
+        <a href="minitask.html" class="active">Manage Mini Task</a>
+
+
+
+    </div>
+
+    <div class="main-content">
+        <div class="container">
+            <h3 class="text-2xl font-semibold text-red-500 mb-6 text-center">USD Redemption Requests</h3>
+            <div class="flex flex-col md:flex-row justify-between mb-6 gap-4">
+                <input id="searchEditText" type="text" placeholder="Search by username, email, wallet..." class="w-full md:w-1/2 p-2 rounded bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500">
+                <select id="filterSpinner" class="w-full md:w-1/4 p-2 rounded bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500">
+                    <option value="All">All</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Approved">Approved</option>
+                    <option value="Rejected">Rejected</option>
+                </select>
+            </div>
+            <div id="progressBar" class="hidden flex justify-center mb-4">
+                <div class="w-8 h-8 border-4 border-red-500 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+            <div id="noDataTextView" class="hidden text-center text-gray-400 text-lg">No redemption requests found</div>
+            <div id="redemptionList" class="space-y-4"></div>
+            <div class="toast" id="toast"></div>
+            <div id="dialogOverlay">
+                <div id="rejectionDialog" class="hidden">
+                    <h4 class="text-xl font-semibold text-white mb-4">Reason for Rejection</h4>
+                    <textarea id="editTextRejectionReason" class="w-full p-2 rounded bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500" rows="4" placeholder="Enter rejection reason"></textarea>
+                    <div class="flex justify-end gap-2 mt-4">
+                        <button id="cancelRejection" class="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded">Cancel</button>
+                        <button id="submitRejection" class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded">Reject</button>
+                    </div>
+                </div>
+                <div id="detailsDialog" class="hidden">
+                    <h4 class="text-xl font-semibold text-white mb-4">Redemption Details</h4>
+                    <div id="detailsContent" class="text-white mb-4"></div>
+                    <div class="flex justify-end">
+                        <button id="closeDetails" class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded">OK</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { getDatabase, ref, onValue, update } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyD14wwgcUIyiPl_qXvx7CtQTO2DEy465II",
+            authDomain: "my-video-earn-app12.firebaseapp.com",
+            databaseURL: "https://my-video-earn-app12-default-rtdb.firebaseio.com",
+            projectId: "my-video-earn-app12",
+            storageBucket: "my-video-earn-app12.firebasestorage.app",
+            messagingSenderId: "967539655660",
+            appId: "1:967539655660:web:95e773e701d35a252936c9",
+            measurementId: "G-DPWBZT3RN5"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+        const database = ref(db, 'USDtransactions');
+
+        // UI Elements
+        const searchEditText = document.getElementById('searchEditText');
+        const filterSpinner = document.getElementById('filterSpinner');
+        const progressBar = document.getElementById('progressBar');
+        const noDataTextView = document.getElementById('noDataTextView');
+        const redemptionList = document.getElementById('redemptionList');
+        const toast = document.getElementById('toast');
+        const dialogOverlay = document.getElementById('dialogOverlay');
+        const rejectionDialog = document.getElementById('rejectionDialog');
+        const detailsDialog = document.getElementById('detailsDialog');
+        const editTextRejectionReason = document.getElementById('editTextRejectionReason');
+        const cancelRejection = document.getElementById('cancelRejection');
+        const submitRejection = document.getElementById('submitRejection');
+        const detailsContent = document.getElementById('detailsContent');
+        const closeDetails = document.getElementById('closeDetails');
+
+        let redemptionRequests = [];
+        let currentRequestId = null;
+
+        // Show Toast Notification
+        function showToast(message) {
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Auth Check
+        onAuthStateChanged(auth, (user) => {
+            if (!user || user.email !== 'reshamchaudhary922@gmail.com') {
+                window.location.href = 'index.html';
+            }
+        });
+
+        // Format Date
+        function formatDate(timestamp) {
+            const date = new Date(timestamp);
+            return date.toLocaleString('en-US', { month: 'short', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        }
+
+        // Load Redemption Requests
+        function loadRedemptionRequests() {
+            progressBar.classList.remove('hidden');
+            noDataTextView.classList.add('hidden');
+
+            onValue(database, (snapshot) => {
+                redemptionRequests = [];
+                snapshot.forEach((child) => {
+                    const request = child.val();
+                    request.id = child.key;
+                    redemptionRequests.push(request);
+                });
+                redemptionRequests.sort((a, b) => b.timestamp - a.timestamp);
+                filterRedemptions();
+                progressBar.classList.add('hidden');
+            }, (error) => {
+                progressBar.classList.add('hidden');
+                showToast('Failed to load requests');
+            });
+        }
+
+        // Filter and Render Redemptions
+        function filterRedemptions() {
+            const status = filterSpinner.value;
+            const searchQuery = searchEditText.value.toLowerCase();
+
+            const filteredList = redemptionRequests.filter(request => {
+                const matchesStatus = status === 'All' || request.status === status.toLowerCase();
+                const matchesSearch = (
+                    (request.walletUsername || '').toLowerCase().includes(searchQuery) ||
+                    (request.walletId || '').toLowerCase().includes(searchQuery) ||
+                    (request.username || '').toLowerCase().includes(searchQuery) ||
+                    (request.email || '').toLowerCase().includes(searchQuery)
+                );
+                return matchesStatus && matchesSearch;
+            });
+
+            renderRedemptions(filteredList);
+            noDataTextView.classList.toggle('hidden', filteredList.length > 0);
+        }
+
+        // Render Redemptions
+        function renderRedemptions(requests) {
+            redemptionList.innerHTML = '';
+            requests.forEach(request => {
+                const card = document.createElement('div');
+                card.className = 'bg-gray-800 p-4 rounded-lg shadow-lg flex flex-col md:flex-row justify-between items-start md:items-center gap-4';
+                card.innerHTML = `
+                    <div>
+                        <p class="text-white font-semibold">${request.walletName || 'N/A'}</p>
+                        <p class="text-gray-400">${request.username || 'N/A'} (${request.email || 'N/A'})</p>
+                        <p class="text-gray-400">$${request.usdValue} (${request.coins} coins)</p>
+                        <p class="text-gray-400">${formatDate(request.timestamp)}</p>
+                        <p class="status-${request.status || 'pending'} capitalize">Status: ${request.status || 'pending'}</p>
+                    </div>
+                    <div class="flex gap-2">
+                        ${request.status === 'pending' ? `
+                            <button class="approve-btn px-3 py-1 bg-green-500 hover:bg-green-600 text-white rounded" data-id="${request.id}">
+                                <i class="fas fa-check mr-1"></i> Approve
+                            </button>
+                            <button class="reject-btn px-3 py-1 bg-red-500 hover:bg-red-600 text-white rounded" data-id="${request.id}">
+                                <i class="fas fa-times mr-1"></i> Reject
+                            </button>
+                        ` : ''}
+                        <button class="details-btn px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded" data-id="${request.id}">
+                            <i class="fas fa-info-circle mr-1"></i> Details
+                        </button>
+                    </div>
+                `;
+                redemptionList.appendChild(card);
+            });
+
+            // Add Event Listeners
+            document.querySelectorAll('.approve-btn').forEach(btn => {
+                btn.addEventListener('click', () => updateRedemptionStatus(btn.dataset.id, 'approved'));
+            });
+            document.querySelectorAll('.reject-btn').forEach(btn => {
+                btn.addEventListener('click', () => showRejectionDialog(btn.dataset.id));
+            });
+            document.querySelectorAll('.details-btn').forEach(btn => {
+                btn.addEventListener('click', () => showRedemptionDetails(btn.dataset.id));
+            });
+        }
+
+        // Update Redemption Status
+        async function updateRedemptionStatus(id, status, rejectionReason = null) {
+            const updates = { status };
+            if (status === 'rejected' && rejectionReason) {
+                updates.rejectionReason = rejectionReason;
+            }
+
+            try {
+                await update(ref(db, `USDtransactions/${id}`), updates);
+                const request = redemptionRequests.find(r => r.id === id);
+                sendEmailIntent(request, status, rejectionReason);
+                showToast(status === 'approved' ? 'Request approved successfully' : 'Request rejected');
+            } catch (error) {
+                showToast('Failed to update status');
+            }
+        }
+
+        // Show Rejection Dialog
+        function showRejectionDialog(id) {
+            currentRequestId = id;
+            editTextRejectionReason.value = '';
+            dialogOverlay.style.display = 'flex';
+            rejectionDialog.classList.remove('hidden');
+            detailsDialog.classList.add('hidden');
+        }
+
+        // Show Redemption Details
+        function showRedemptionDetails(id) {
+            const request = redemptionRequests.find(r => r.id === id);
+            if (!request) return;
+
+            detailsContent.innerHTML = `
+                <p><strong>User:</strong> ${request.username || 'N/A'}</p>
+                <p><strong>Email:</strong> ${request.email || 'N/A'}</p>
+                <p><strong>Phone:</strong> ${request.phone || 'N/A'}</p>
+                <p><strong>Wallet:</strong> ${request.walletName || 'N/A'}</p>
+                <p><strong>Wallet Username:</strong> ${request.walletUsername || 'N/A'}</p>
+                <p><strong>Wallet ID:</strong> ${request.walletId || 'N/A'}</p>
+                <p><strong>Coins:</strong> ${request.coins}</p>
+                <p><strong>USD Amount:</strong> $${request.usdValue}</p>
+                <p><strong>Request Date:</strong> ${formatDate(request.timestamp)}</p>
+                <p><strong>Status:</strong> ${request.status || 'pending'}</p>
+                ${request.rejectionReason ? `<p><strong>Rejection Reason:</strong> ${request.rejectionReason}</p>` : ''}
+            `;
+            dialogOverlay.style.display = 'flex';
+            detailsDialog.classList.remove('hidden');
+            rejectionDialog.classList.add('hidden');
+        }
+
+        // Send Email Intent (Simulated)
+        function sendEmailIntent(request, status, rejectionReason = null) {
+            if (!request || !request.email) {
+                showToast('No email available for notification');
+                return;
+            }
+
+            const subject = `Redemption Request ${status.toUpperCase()} - $${request.usdValue}`;
+            const body = `
+Redemption Request Details
+--------------------------------
+Status: ${status.toUpperCase()}
+Date: ${formatDate(request.timestamp)}
+
+User Information:
+--------------------------------
+User ID: ${request.userId || 'N/A'}
+Username: ${request.username || 'N/A'}
+Email: ${request.email || 'N/A'}
+Phone: ${request.phone || 'N/A'}
+
+Redemption Details:
+--------------------------------
+Wallet Name: ${request.walletName || 'N/A'}
+Wallet Username: ${request.walletUsername || 'N/A'}
+Wallet ID: ${request.walletId || 'N/A'}
+Coins: ${request.coins}
+USD Amount: $${request.usdValue}
+
+${status === 'rejected' ? `
+Rejection Reason:
+--------------------------------
+${rejectionReason || 'Not specified'}
+` : ''}
+
+${status === 'approved' ? `
+The amount has been approved and will be processed shortly.
+` : ''}
+
+Thank you,
+Admin Team
+            `.trim();
+
+            // Simulate email by opening mailto link
+            const mailtoLink = `mailto:${request.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+            window.location.href = mailtoLink;
+
+            // Note: In a browser, this opens the default email client. For production, consider a server-side email solution.
+        }
+
+        // Event Listeners
+        searchEditText.addEventListener('input', filterRedemptions);
+        filterSpinner.addEventListener('change', filterRedemptions);
+
+        cancelRejection.addEventListener('click', () => {
+            dialogOverlay.style.display = 'none';
+            rejectionDialog.classList.add('hidden');
+        });
+
+        submitRejection.addEventListener('click', () => {
+            const reason = editTextRejectionReason.value.trim();
+            if (!reason) {
+                showToast('Please enter a reason');
+                return;
+            }
+            updateRedemptionStatus(currentRequestId, 'rejected', reason);
+            dialogOverlay.style.display = 'none';
+            rejectionDialog.classList.add('hidden');
+        });
+
+        closeDetails.addEventListener('click', () => {
+            dialogOverlay.style.display = 'none';
+            detailsDialog.classList.add('hidden');
+        });
+
+        // Initialize
+        loadRedemptionRequests();
+
+        // Fallback for Font Awesome failure
+        window.addEventListener('load', () => {
+            if (!document.querySelector('.fa-check')) {
+                console.warn('Font Awesome icons not loaded, applying fallback text');
+                document.querySelectorAll('button').forEach(btn => {
+                    btn.textContent = btn.textContent.replace(/.*?\s/, '');
+                });
+            }
+        });
+    </script>
+</body>
+</html>

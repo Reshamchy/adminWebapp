@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Users - FireAuth</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" rel="stylesheet" integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" crossorigin="anonymous">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            min-height: 100vh;
+            display: flex;
+            overflow-x: auto;
+            position: relative;
+            font-size: 16px;
+        }
+
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: -2;
+        }
+
+        .bg-animation::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, 
+                transparent 0%, 
+                rgba(255, 255, 255, 0.1) 25%, 
+                transparent 50%, 
+                rgba(255, 255, 255, 0.1) 75%, 
+                transparent 100%);
+            animation: shimmer 20s infinite linear;
+        }
+
+        @keyframes shimmer {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .geometric-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .shape {
+            position: absolute;
+            opacity: 0.1;
+            animation: float-shapes 15s infinite ease-in-out;
+        }
+
+        .shape:nth-child(1) {
+            top: 10%;
+            left: 10%;
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            border-radius: 20px;
+            animation-delay: 0s;
+        }
+
+        .shape:nth-child(2) {
+            top: 20%;
+            right: 15%;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(45deg, #4ecdc4, #44a08d);
+            border-radius: 50%;
+            animation-delay: 2s;
+        }
+
+        .shape:nth-child(3) {
+            bottom: 20%;
+            left: 20%;
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(45deg, #a8e6cf, #88d8c0);
+            border-radius: 30px;
+            animation-delay: 4s;
+        }
+
+        .shape:nth-child(4) {
+            bottom: 30%;
+            right: 10%;
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(45deg, #ffd93d, #ff6b6b);
+            border-radius: 15px;
+            animation-delay: 6s;
+        }
+
+        @keyframes float-shapes {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+
+        .sidebar {
+            width: 250px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(30px);
+            border-right: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            max-height: 100vh;
+            overflow-y: auto;
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.15);
+            z-index: 10;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+        }
+
+         .sidebar::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+
+        .sidebar h2 {
+            color: white;
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .sidebar a {
+            display: block;
+            color: white;
+            text-decoration: none;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .sidebar a:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateX(5px);
+        }
+
+        .sidebar a.active {
+            background: rgba(255, 71, 87, 0.3);
+        }
+
+        .main-content {
+            margin-left: 270px;
+            padding: 2rem 3rem;
+            width: calc(100% - 270px);
+            min-width: 700px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(30px);
+            border-radius: 25px;
+            padding: 2rem 3rem;
+            box-shadow: 
+                0 25px 45px rgba(0, 0, 0, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            animation: containerGlow 4s infinite alternate;
+            max-width: 90vw;
+            margin: 0 auto;
+        }
+
+        @keyframes containerGlow {
+            0% { box-shadow: 0 25px 45px rgba(0, 0, 0, 0.15), 0 0 30px rgba(102, 126, 234, 0.3); }
+            100% { box-shadow: 0 25px 45px rgba(0, 0, 0, 0.15), 0 0 50px rgba(118, 75, 162, 0.4); }
+        }
+
+        .user-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: block;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+
+        .user-table th,
+        .user-table td {
+            padding: 1rem 1.5rem;
+            text-align: left;
+            color: white;
+            font-weight: 500;
+            min-width: 100px;
+            font-size: 0.9rem;
+        }
+
+        .user-table th {
+            background: rgba(255, 71, 87, 0.3);
+            font-weight: 600;
+        }
+
+        .user-table tr {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .user-table tr:nth-child(even) {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .user-table tr:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .user-table tr:last-child {
+            border-bottom: none;
+        }
+
+        .action-btn {
+            background: rgba(0, 0, 0, 0.3) !important;
+            border: 1px solid rgba(255, 255, 255, 0.5) !important;
+            color: white !important;
+            cursor: pointer;
+            font-size: 0.85rem;
+            padding: 8px;
+            margin-right: 10px;
+            border-radius: 5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .action-btn:hover {
+            background: rgba(255, 255, 255, 0.2) !important;
+        }
+
+        .block-btn {
+            color: #dc3545 !important;
+        }
+
+        .unblock-btn {
+            color: #28a745 !important;
+        }
+
+        .delete-btn {
+            color: #ff4757 !important;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .toast.show {
+            opacity: 1;
+        }
+
+        .search-container {
+            position: relative;
+        }
+
+        .suggestion-box {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 20;
+            display: none;
+        }
+
+        .suggestion-box.show {
+            display: block;
+        }
+
+        .suggestion-item {
+            padding: 10px;
+            color: white;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .suggestion-item:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        /* Media Queries */
+        @media screen and (min-width: 1024px) {
+            .main-content {
+                padding: 3rem 4rem;
+            }
+
+            .container {
+                padding: 3rem 4rem;
+                max-width: 85vw;
+            }
+
+            .user-table th,
+            .user-table td {
+                min-width: 120px;
+                padding: 1.2rem 1.8rem;
+                font-size: 0.95rem;
+            }
+        }
+
+        @media screen and (min-width: 1440px) {
+            .container {
+                max-width: 80vw;
+            }
+
+            .user-table th,
+            .user-table td {
+                min-width: 140px;
+                padding: 1.5rem 2rem;
+                font-size: 1rem;
+            }
+
+            .action-btn {
+                padding: 10px;
+                font-size: 0.9rem;
+            }
+        }
+
+        @media screen and (min-width: 1920px) {
+            .container {
+                max-width: 75vw;
+            }
+
+            .user-table th,
+            .user-table td {
+                min-width: 160px;
+                font-size: 1.05rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-animation"></div>
+    <div class="geometric-bg">
+        <div class="shape"></div>
+        <div class="shape"></div>
+        <div class="shape"></div>
+        <div class="shape"></div>
+    </div>
+
+    <div class="sidebar">
+        <h2>Admin Panel</h2>
+        <a href="adminstatictis.html">Dashboard</a>
+        <a href="user_rank.html">User Rankings</a>
+        <a href="config_coins.html">Configure Coins</a>
+        <a href="send_email.html">Send Email</a>
+        <a href="generate_bonus.html">Generate Bonus</a>
+        <a href="search.html">Search Users</a>
+        <a href="manage_withdrawal.html">Manage Withdrawals</a>
+        <a href="manage_users.html">Manage Users</a>
+        <a href="manage_coins.html">Manage Coins</a>
+        <a href="manage_staff_applications.html">Manage Staff Applications</a>
+        <a href="manage_suggestions.html">Manage Suggestions</a>
+         <a href="usdmanage.html">Manage Withdrawals Usd</a>
+        <a href="facebook&insta.html">Social Ads Settings</a>
+        <a href="yotube.html">YouTube Settings</a>
+        <a href="tiktok.html" class="active">TikTok Settings</a>
+        <a href="game.html" class="active">Manage Game</a>
+        <a href="movie.html" class="active">Manage Movie</a>
+        <a href="admin_diamond.html" class="active">Manage Diamonds</a>
+        <a href="admin_free_net.html" class="active">Manage Data Pack</a>
+        <a href="admin_subscription_approve.html" class="active">Manage Subscriptions</a>
+        <a href="change_password.html" class="active">Manage Password</a>
+        <a href="config_coins.html" class="active">Manage Config Coins</a>
+        <a href="deposit.html" class="active">Manage Deposit</a>
+        <a href="earn.html" class="active">Manage Earn</a>
+        <a href="generate_bonus.html" class="active">Manage Bonus Voucher</a>
+        <a href="manage_suggestions.html" class="active">Manage Suggestions Box</a>
+        <a href="minitask.html" class="active">Manage Mini Task</a>
+    </div>
+
+    <div class="main-content">
+        <div class="container">
+            <h3 class="text-2xl font-semibold text-red-500 mb-6 text-center">Manage Users</h3>
+            <div class="search-container mb-6">
+                <input id="searchInput" type="text" class="w-full p-2 rounded bg-gray-800 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500" placeholder="Search by username, user ID, phone, or email">
+                <div id="suggestionBox" class="suggestion-box"></div>
+            </div>
+            <div class="flex justify-between mb-4">
+                <button id="sortButton" class="bg-red-500 hover:bg-red-600 text-white p-2 rounded flex items-center">
+                    <i class="fas fa-sort-alpha-down mr-2"></i> Sort by Username (Asc)
+                </button>
+            </div>
+            <table class="user-table">
+                <thead>
+                    <tr>
+                        <th>User ID</th>
+                        <th>Username</th>
+                        <th>Phone</th>
+                        <th>Points</th>
+                        <th>Email</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="userTableBody"></tbody>
+            </table>
+            <div class="toast" id="toast"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { getDatabase, ref, onValue, remove, set } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+        import { getFunctions, httpsCallable } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-functions.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyD14wwgcUIyiPl_qXvx7CtQTO2DEy465II",
+            authDomain: "my-video-earn-app12.firebaseapp.com",
+            databaseURL: "https://my-video-earn-app12-default-rtdb.firebaseio.com",
+            projectId: "my-video-earn-app12",
+            storageBucket: "my-video-earn-app12.firebasestorage.app",
+            messagingSenderId: "967539655660",
+            appId: "1:967539655660:web:95e773e701d35a252936c9",
+            measurementId: "G-DPWBZT3RN5"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+        const functions = getFunctions(app);
+        const usersRef = ref(db, 'users');
+        const userTableBody = document.getElementById('userTableBody');
+        const searchInput = document.getElementById('searchInput');
+        const suggestionBox = document.getElementById('suggestionBox');
+        const sortButton = document.getElementById('sortButton');
+        const toast = document.getElementById('toast');
+        let users = [];
+        let sortAscending = true;
+
+        // Show Toast Notification
+        function showToast(message) {
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Auth Check
+        onAuthStateChanged(auth, (user) => {
+            if (!user || user.email !== 'reshamchaudhary922@gmail.com') {
+                window.location.href = 'index.html';
+            }
+        });
+
+        // Render Table
+        function renderTable(filteredUsers) {
+            userTableBody.innerHTML = '';
+            if (filteredUsers.length === 0) {
+                userTableBody.innerHTML = '<tr><td colspan="7" class="text-center">No users found</td></tr>';
+                return;
+            }
+
+            filteredUsers.forEach(user => {
+                console.log('Creating row for user:', user.userId);
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${user.userId}</td>
+                    <td>${user.username}</td>
+                    <td>${user.phone}</td>
+                    <td>${user.points}</td>
+                    <td>${user.email}</td>
+                    <td>${user.disabled ? 'Blocked' : 'Active'}</td>
+                    <td>
+                        <button class="action-btn ${user.disabled ? 'unblock-btn' : 'block-btn'}" data-id="${user.userId}" title="${user.disabled ? 'Unblock' : 'Block'}" style="background: rgba(0, 0, 0, 0.3); border: 1px solid white;">
+                            <i class="fas ${user.disabled ? 'fa-lock-open' : 'fa-lock'}"></i> ${user.disabled ? 'Unblock' : 'Block'}
+                        </button>
+                        <button class="action-btn delete-btn" data-id="${user.userId}" title="Delete" style="background: rgba(0, 0, 0, 0.3); border: 1px solid white; color: #ff4757;">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+                    </td>
+                `;
+                userTableBody.appendChild(row);
+            });
+
+            // Add event listeners for buttons
+            document.querySelectorAll('.block-btn, .unblock-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const userId = btn.dataset.id;
+                    const action = btn.classList.contains('block-btn') ? 'block' : 'unblock';
+                    console.log(`${action} button clicked for user ID:`, userId);
+                    toggleUserStatus(userId, action);
+                });
+            });
+
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const userId = btn.dataset.id;
+                    console.log('Delete button clicked for user ID:', userId);
+                    if (confirm(`Are you sure you want to delete user ${userId}?`)) {
+                        deleteUser(userId);
+                    }
+                });
+            });
+        }
+
+        // Fetch Users
+        function fetchUsers() {
+            console.log('Fetching users...');
+            onValue(usersRef, (snapshot) => {
+                console.log('Snapshot received, docs count:', snapshot.exists() ? Object.keys(snapshot.val()).length : 0);
+                users = [];
+                if (snapshot.exists()) {
+                    snapshot.forEach((childSnapshot) => {
+                        const data = childSnapshot.val();
+                        console.log('Processing user:', childSnapshot.key, data);
+                        users.push({
+                            userId: childSnapshot.key,
+                            username: data.username || '',
+                            phone: data.phone || '',
+                            points: data.points || 0,
+                            email: data.email || '',
+                            disabled: data.disabled || false
+                        });
+                    });
+                }
+
+                // Sort users by username
+                users.sort((a, b) => sortAscending 
+                    ? a.username.localeCompare(b.username) 
+                    : b.username.localeCompare(a.username));
+
+                console.log('Sorted users array:', users);
+                renderTable(users);
+                updateSuggestions('');
+            }, (error) => {
+                console.error('Error fetching users:', error);
+                userTableBody.innerHTML = '<tr><td colspan="7" class="text-center">Failed to load users</td></tr>';
+                showToast('Error loading users');
+            });
+        }
+
+        // Update Suggestions
+        function updateSuggestions(query) {
+            const filteredUsers = users.filter(user => 
+                user.username.toLowerCase().includes(query.toLowerCase())
+            ).slice(0, 5); // Limit to 5 suggestions
+
+            suggestionBox.innerHTML = '';
+            if (query && filteredUsers.length > 0) {
+                filteredUsers.forEach(user => {
+                    const suggestionItem = document.createElement('div');
+                    suggestionItem.classList.add('suggestion-item');
+                    suggestionItem.textContent = user.username;
+                    suggestionItem.addEventListener('click', () => {
+                        searchInput.value = user.username;
+                        suggestionBox.classList.remove('show');
+                        filterUsers(user.username);
+                    });
+                    suggestionBox.appendChild(suggestionItem);
+                });
+                suggestionBox.classList.add('show');
+            } else {
+                suggestionBox.classList.remove('show');
+            }
+        }
+
+        // Filter Users
+        function filterUsers(query) {
+            const filteredUsers = users.filter(user => 
+                user.username.toLowerCase().includes(query.toLowerCase()) ||
+                user.userId.toLowerCase().includes(query.toLowerCase()) ||
+                user.phone.toLowerCase().includes(query.toLowerCase()) ||
+                user.email.toLowerCase().includes(query.toLowerCase())
+            );
+            renderTable(filteredUsers);
+        }
+
+        // Toggle User Status (Block/Unblock)
+        async function toggleUserStatus(userId, action) {
+            try {
+                console.log(`Attempting to ${action} user ${userId}`);
+                const toggleUser = httpsCallable(functions, 'toggleUserStatus');
+                const result = await toggleUser({ userId, action });
+                console.log(`User ${userId} ${action}ed successfully:`, result.data);
+                showToast(`User ${action}ed successfully`);
+
+                // Update local database to reflect disabled status
+                const userRef = ref(db, `users/${userId}`);
+                await set(userRef, { disabled: action === 'block' }, { merge: true });
+            } catch (error) {
+                console.error(`Error ${action}ing user:`, error);
+                showToast(`Error ${action}ing user: ${error.message}`);
+            }
+        }
+
+        // Delete User
+        async function deleteUser(userId) {
+            try {
+                console.log(`Attempting to delete user ${userId}`);
+                const deleteUser = httpsCallable(functions, 'deleteUser');
+                const result = await deleteUser({ userId });
+                console.log(`User ${userId} deleted successfully:`, result.data);
+                showToast('User deleted successfully');
+
+                // Remove user from Realtime Database
+                const userRef = ref(db, `users/${userId}`);
+                await remove(userRef);
+            } catch (error) {
+                console.error('Error deleting user:', error);
+                showToast(`Error deleting user: ${error.message}`);
+            }
+        }
+
+        // Search Input Event Listener
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value;
+            updateSuggestions(query);
+            filterUsers(query);
+        });
+
+        // Hide Suggestions on Click Outside
+        document.addEventListener('click', (e) => {
+            if (!searchInput.contains(e.target) && !suggestionBox.contains(e.target)) {
+                suggestionBox.classList.remove('show');
+            }
+        });
+
+        // Sort Button Event Listener
+        sortButton.addEventListener('click', () => {
+            sortAscending = !sortAscending;
+            sortButton.innerHTML = `<i class="fas fa-sort-alpha-${sortAscending ? 'down' : 'up'} mr-2"></i> Sort by Username (${sortAscending ? 'Asc' : 'Desc'})`;
+            users.sort((a, b) => sortAscending 
+                ? a.username.localeCompare(b.username) 
+                : b.username.localeCompare(b.username));
+            renderTable(users);
+        });
+
+        // Initialize
+        console.log('Initializing manage users page...');
+        fetchUsers();
+
+        // Fallback for Font Awesome failure
+        window.addEventListener('load', () => {
+            if (!document.querySelector('.fa-lock')) {
+                console.warn('Font Awesome icons not loaded, applying fallback text');
+                document.querySelectorAll('.block-btn').forEach(btn => {
+                    btn.textContent = 'Block';
+                });
+                document.querySelectorAll('.unblock-btn').forEach(btn => {
+                    btn.textContent = 'Unblock';
+                });
+                document.querySelectorAll('.delete-btn').forEach(btn => {
+                    btn.textContent = 'Delete';
+                });
+                document.querySelectorAll('#sortButton').forEach(btn => {
+                    btn.textContent = `Sort by Username (${sortAscending ? 'Asc' : 'Desc'})`;
+                });
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Earn Settings - FireAuth</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" rel="stylesheet" integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" crossorigin="anonymous">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            min-height: 100vh;
+            display: flex;
+            overflow-x: auto;
+            position: relative;
+            font-size: 16px;
+        }
+
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: -2;
+        }
+
+        .bg-animation::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, 
+                transparent 0%, 
+                rgba(255, 255, 255, 0.1) 25%, 
+                transparent 50%, 
+                rgba(255, 255, 255, 0.1) 75%, 
+                transparent 100%);
+            animation: shimmer 20s infinite linear;
+        }
+
+        @keyframes shimmer {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .geometric-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .shape {
+            position: absolute;
+            opacity: 0.1;
+            animation: float-shapes 15s infinite ease-in-out;
+        }
+
+        .shape:nth-child(1) {
+            top: 10%;
+            left: 10%;
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            border-radius: 20px;
+            animation-delay: 0s;
+        }
+
+        .shape:nth-child(2) {
+            top: 20%;
+            right: 15%;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(45deg, #4ecdc4, #44a08d);
+            border-radius: 50%;
+            animation-delay: 2s;
+        }
+
+        .shape:nth-child(3) {
+            bottom: 20%;
+            left: 20%;
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(45deg, #a8e6cf, #88d8c0);
+            border-radius: 30px;
+            animation-delay: 4s;
+        }
+
+        .shape:nth-child(4) {
+            bottom: 30%;
+            right: 10%;
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(45deg, #ffd93d, #ff6b6b);
+            border-radius: 15px;
+            animation-delay: 6s;
+        }
+
+        @keyframes float-shapes {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+
+        .sidebar {
+            width: 250px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(30px);
+            border-right: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            max-height: 100vh;
+            overflow-y: auto;
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.15);
+            z-index: 10;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+        }
+
+        .sidebar::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .sidebar h2 {
+            color: white;
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .sidebar a {
+            display: block;
+            color: white;
+            text-decoration: none;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .sidebar a:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateX(5px);
+        }
+
+        .sidebar a.active {
+            background: rgba(255, 71, 87, 0.3);
+        }
+
+        .main-content {
+            margin-left: 270px;
+            padding: 2rem 3rem;
+            width: calc(100% - 270px);
+            min-width: 700px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(30px);
+            border-radius: 25px;
+            padding: 2rem 3rem;
+            box-shadow: 
+                0 25px 45px rgba(0, 0, 0, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            animation: containerGlow 4s infinite alternate;
+            max-width: 90vw;
+            margin: 0 auto;
+        }
+
+        @keyframes containerGlow {
+            0% { box-shadow: 0 25px 45px rgba(0, 0, 0, 0.15), 0 0 30px rgba(102, 126, 234, 0.3); }
+            100% { box-shadow: 0 25px 45px rgba(0, 0, 0, 0.15), 0 0 50px rgba(118, 75, 162, 0.4); }
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .toast.show {
+            opacity: 1;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 40px;
+            height: 20px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: 0.4s;
+            border-radius: 20px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 2px;
+            bottom: 2px;
+            background-color: white;
+            transition: 0.4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #ff4757;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+
+        /* Media Queries */
+        @media screen and (min-width: 1024px) {
+            .main-content {
+                padding: 3rem 4rem;
+            }
+
+            .container {
+                padding: 3rem 4rem;
+                max-width: 85vw;
+            }
+        }
+
+        @media screen and (min-width: 1440px) {
+            .container {
+                max-width: 80vw;
+            }
+        }
+
+        @media screen and (min-width: 1920px) {
+            .container {
+                max-width: 75vw;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-animation"></div>
+    <div class="geometric-bg">
+        <div class="shape"></div>
+        <div class="shape"></div>
+        <div class="shape"></div>
+        <div class="shape"></div>
+    </div>
+
+    <div class="sidebar">
+        <h2>Admin Panel</h2>
+      <a href="adminstatictis.html">Dashboard</a>
+        <a href="user_rank.html">User Rankings</a>
+        <a href="config_coins.html">Configure Coins</a>
+        <a href="send_email.html">Send Email</a>
+        <a href="generate_bonus.html">Generate Bonus</a>
+        <a href="search.html">Search Users</a>
+        <a href="manage_withdrawal.html">Manage Withdrawals</a>
+        <a href="manage_users.html">Manage Users</a>
+        <a href="manage_coins.html">Manage Coins</a>
+        <a href="manage_staff_applications.html">Manage Staff Applications</a>
+        <a href="manage_suggestions.html">Manage Suggestions</a>
+         <a href="usdmanage.html">Manage Withdrawals Usd</a>
+        <a href="facebook&insta.html">Social Ads Settings</a>
+        <a href="yotube.html">YouTube Settings</a>
+        <a href="tiktok.html" class="active">TikTok Settings</a>
+        <a href="game.html" class="active">Manage Game</a>
+        <a href="movie.html" class="active">Manage Movie</a>
+        <a href="admin_diamond.html" class="active">Manage Diamonds</a>
+        <a href="admin_free_net.html" class="active">Manage Data Pack</a>
+        <a href="admin_subscription_approve.html" class="active">Manage Subscriptions</a>
+        <a href="change_password.html" class="active">Manage Password</a>
+        <a href="config_coins.html" class="active">Manage Config Coins</a>
+        <a href="deposit.html" class="active">Manage Deposit</a>
+        <a href="earn.html" class="active">Manage Earn</a>
+        <a href="generate_bonus.html" class="active">Manage Bonus Voucher</a>
+        <a href="manage_suggestions.html" class="active">Manage Suggestions Box</a>
+        <a href="minitask.html" class="active">Manage Mini Task</a>
+    </div>
+
+    <div class="main-content">
+        <div class="container">
+            <h3 class="text-2xl font-semibold text-red-500 mb-6 text-center">Earn Settings</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Button Visibility Switches -->
+                <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                    <h4 class="text-xl font-semibold text-white mb-4">Feature Visibility</h4>
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <label class="text-white">Survey</label>
+                            <label class="switch">
+                                <input id="surveySwitch" type="checkbox">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <label class="text-white">Subscribe</label>
+                            <label class="switch">
+                                <input id="subscribeSwitch" type="checkbox">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <label class="text-white">YouTube</label>
+                            <label class="switch">
+                                <input id="youtubeSwitch" type="checkbox">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <label class="text-white">Play Card Game</label>
+                            <label class="switch">
+                                <input id="playcardgameSwitch" type="checkbox">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <label class="text-white">Colour Choose</label>
+                            <label class="switch">
+                                <input id="colourchooseSwitch" type="checkbox">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <label class="text-white">Deposit Point</label>
+                            <label class="switch">
+                                <input id="depositpointSwitch" type="checkbox">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <label class="text-white">Transfer Point</label>
+                            <label class="switch">
+                                <input id="transferpointSwitch" type="checkbox">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <label class="text-white">Video</label>
+                            <label class="switch">
+                                <input id="videoSwitch" type="checkbox">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <label class="text-white">Facebook</label>
+                            <label class="switch">
+                                <input id="facebookSwitch" type="checkbox">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <label class="text-white">Instagram</label>
+                            <label class="switch">
+                                <input id="instaSwitch" type="checkbox">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <label class="text-white">TikTok</label>
+                            <label class="switch">
+                                <input id="ttSwitch" type="checkbox">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <label class="text-white">Ads Watch</label>
+                            <label class="switch">
+                                <input id="adsSwitch" type="checkbox">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <label class="text-white">Game</label>
+                            <label class="switch">
+                                <input id="gameSwitch" type="checkbox">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <label class="text-white">Tic Tac</label>
+                            <label class="switch">
+                                <input id="ticSwitch" type="checkbox">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <label class="text-white">Movie</label>
+                            <label class="switch">
+                                <input id="mSwitch" type="checkbox">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <label class="text-white">AI Tool</label>
+                            <label class="switch">
+                                <input id="aitoolSwitch" type="checkbox">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <label class="text-white">Free Net</label>
+                            <label class="switch">
+                                <input id="fNetSwitch" type="checkbox">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <label class="text-white">Free Fire</label>
+                            <label class="switch">
+                                <input id="ffGameSwitch" type="checkbox">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <label class="text-white">Mini Task</label>
+                            <label class="switch">
+                                <input id="TaskSwitch" type="checkbox">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <label class="text-white">Bonus</label>
+                            <label class="switch">
+                                <input id="bonus" type="checkbox">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <label class="text-white">Email</label>
+                            <label class="switch">
+                                <input id="email" type="checkbox">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <label class="text-white">Review</label>
+                            <label class="switch">
+                                <input id="review" type="checkbox">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <label class="text-white">Apply</label>
+                            <label class="switch">
+                                <input id="apply" type="checkbox">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <label class="text-white">Spotify</label>
+                            <label class="switch">
+                                <input id="sp" type="checkbox">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <label class="text-white">Free Fire Diamond</label>
+                            <label class="switch">
+                                <input id="ffd" type="checkbox">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <label class="text-white">Admin Link</label>
+                            <label class="switch">
+                                <input id="linkSwitch" type="checkbox">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <!-- Navigation Buttons -->
+                <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                    <h4 class="text-xl font-semibold text-white mb-4">Management Pages</h4>
+                    <div class="space-y-4">
+                        <button id="btnSubscribeManagement" class="w-full bg-blue-500 hover:bg-blue-600 text-white p-2 rounded flex items-center justify-center">
+                            <i class="fas fa-users mr-2"></i> Subscribe Management
+                        </button>
+                        <button id="btnQuestionManagement" class="w-full bg-blue-500 hover:bg-blue-600 text-white p-2 rounded flex items-center justify-center">
+                            <i class="fas fa-question-circle mr-2"></i> Question Management
+                        </button>
+                        <button id="btnyoutube" class="w-full bg-blue-500 hover:bg-blue-600 text-white p-2 rounded flex items-center justify-center">
+                            <i class="fab fa-youtube mr-2"></i> YouTube Management
+                        </button>
+                        <button id="btnTaasGameManagement" class="w-full bg-blue-500 hover:bg-blue-600 text-white p-2 rounded flex items-center justify-center">
+                            <i class="fas fa-gamepad mr-2"></i> Card Game Management
+                        </button>
+                        <button id="btncolourchoose" class="w-full bg-blue-500 hover:bg-blue-600 text-white p-2 rounded flex items-center justify-center">
+                            <i class="fas fa-palette mr-2"></i> Colour Choose Management
+                        </button>
+                        <button id="btntransferpoint" class="w-full bg-blue-500 hover:bg-blue-600 text-white p-2 rounded flex items-center justify-center">
+                            <i class="fas fa-exchange-alt mr-2"></i> Transfer Point Management
+                        </button>
+                        <button id="btndepositpoint" class="w-full bg-blue-500 hover:bg-blue-600 text-white p-2 rounded flex items-center justify-center">
+                            <i class="fas fa-money-bill-wave mr-2"></i> Deposit Point Management
+                        </button>
+                        <button id="btnfb" class="w-full bg-blue-500 hover:bg-blue-600 text-white p-2 rounded flex items-center justify-center">
+                            <i class="fab fa-facebook mr-2"></i> Facebook Management
+                        </button>
+                        <button id="btnm" class="w-full bg-blue-500 hover:bg-blue-600 text-white p-2 rounded flex items-center justify-center">
+                            <i class="fas fa-film mr-2"></i> Movie Management
+                        </button>
+                        <button id="btntt" class="w-full bg-blue-500 hover:bg-blue-600 text-white p-2 rounded flex items-center justify-center">
+                            <i class="fab fa-tiktok mr-2"></i> TikTok Management
+                        </button>
+                        <button id="task" class="w-full bg-blue-500 hover:bg-blue-600 text-white p-2 rounded flex items-center justify-center">
+                            <i class="fas fa-tasks mr-2"></i> Mini Task Management
+                        </button>
+                        <button id="sm" class="w-full bg-blue-500 hover:bg-blue-600 text-white p-2 rounded flex items-center justify-center">
+                            <i class="fas fa-lightbulb mr-2"></i> Suggestion Management
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <button id="saveButton" class="mt-6 w-full bg-red-500 hover:bg-red-600 text-white p-2 rounded flex items-center justify-center">
+                <i class="fas fa-save mr-2"></i> Save Settings
+            </button>
+            <div class="toast" id="toast"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { getDatabase, ref, get, set } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyD14wwgcUIyiPl_qXvx7CtQTO2DEy465II",
+            authDomain: "my-video-earn-app12.firebaseapp.com",
+            databaseURL: "https://my-video-earn-app12-default-rtdb.firebaseio.com",
+            projectId: "my-video-earn-app12",
+            storageBucket: "my-video-earn-app12.firebasestorage.app",
+            messagingSenderId: "967539655660",
+            appId: "1:967539655660:web:95e773e701d35a252936c9",
+            measurementId: "G-DPWBZT3RN5"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+        const buttonDatabase = ref(db, 'button_visibility');
+        const linkDatabase = ref(db, 'admin/link_status');
+
+        // UI Elements
+        const surveySwitch = document.getElementById('surveySwitch');
+        const subscribeSwitch = document.getElementById('subscribeSwitch');
+        const youtubeSwitch = document.getElementById('youtubeSwitch');
+        const playcardgameSwitch = document.getElementById('playcardgameSwitch');
+        const colourchooseSwitch = document.getElementById('colourchooseSwitch');
+        const depositpointSwitch = document.getElementById('depositpointSwitch');
+        const transferpointSwitch = document.getElementById('transferpointSwitch');
+        const videoSwitch = document.getElementById('videoSwitch');
+        const facebookSwitch = document.getElementById('facebookSwitch');
+        const instaSwitch = document.getElementById('instaSwitch');
+        const ttSwitch = document.getElementById('ttSwitch');
+        const adsSwitch = document.getElementById('adsSwitch');
+        const gameSwitch = document.getElementById('gameSwitch');
+        const ticSwitch = document.getElementById('ticSwitch');
+        const mSwitch = document.getElementById('mSwitch');
+        const aitoolSwitch = document.getElementById('aitoolSwitch');
+        const fNetSwitch = document.getElementById('fNetSwitch');
+        const ffGameSwitch = document.getElementById('ffGameSwitch');
+        const TaskSwitch = document.getElementById('TaskSwitch');
+        const bonus = document.getElementById('bonus');
+        const email = document.getElementById('email');
+        const review = document.getElementById('review');
+        const apply = document.getElementById('apply');
+        const sp = document.getElementById('sp');
+        const ffd = document.getElementById('ffd');
+        const linkSwitch = document.getElementById('linkSwitch');
+        const saveButton = document.getElementById('saveButton');
+
+        const btnSubscribeManagement = document.getElementById('btnSubscribeManagement');
+        const btnQuestionManagement = document.getElementById('btnQuestionManagement');
+        const btnyoutube = document.getElementById('btnyoutube');
+        const btnTaasGameManagement = document.getElementById('btnTaasGameManagement');
+        const btncolourchoose = document.getElementById('btncolourchoose');
+        const btntransferpoint = document.getElementById('btntransferpoint');
+        const btndepositpoint = document.getElementById('btndepositpoint');
+        const btnfb = document.getElementById('btnfb');
+        const btnm = document.getElementById('btnm');
+        const btntt = document.getElementById('btntt');
+        const task = document.getElementById('task');
+        const sm = document.getElementById('sm');
+
+        const toast = document.getElementById('toast');
+
+        // Show Toast Notification
+        function showToast(message) {
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Auth Check
+        onAuthStateChanged(auth, (user) => {
+            if (!user || user.email !== 'reshamchaudhary922@gmail.com') {
+                window.location.href = 'index.html';
+            }
+        });
+
+        // Load Settings from Firebase
+        async function loadSettings() {
+            try {
+                // Load button visibility
+                const buttonSnapshot = await get(buttonDatabase);
+                const buttonData = buttonSnapshot.val() || {};
+                surveySwitch.checked = buttonData.surveyButton || false;
+                subscribeSwitch.checked = buttonData.subscribeButton || false;
+                youtubeSwitch.checked = buttonData.youtubeButton || false;
+                playcardgameSwitch.checked = buttonData.playcardgameButton || false;
+                colourchooseSwitch.checked = buttonData.colourchooseButton || false;
+                depositpointSwitch.checked = buttonData.depositpointButton || false;
+                transferpointSwitch.checked = buttonData.transferpointButton || false;
+                videoSwitch.checked = buttonData.videoButton || false;
+                facebookSwitch.checked = buttonData.facebookButton || false;
+                instaSwitch.checked = buttonData.instaButton || false;
+                ttSwitch.checked = buttonData.tiktokButton || false;
+                adsSwitch.checked = buttonData.adsWatchButton || false;
+                gameSwitch.checked = buttonData.gameButton || false;
+                ticSwitch.checked = buttonData.tictacButton || false;
+                mSwitch.checked = buttonData.movieButton || false;
+                aitoolSwitch.checked = buttonData.aiToolButton || false;
+                fNetSwitch.checked = buttonData.freeNetButton || false;
+                ffGameSwitch.checked = buttonData.freeFireButton || false;
+                TaskSwitch.checked = buttonData.miniTaskButton || false;
+                bonus.checked = buttonData.bonusButton || false;
+                email.checked = buttonData.emailButton || false;
+                review.checked = buttonData.reviewButton || false;
+                apply.checked = buttonData.applyButton || false;
+                sp.checked = buttonData.spotifyButton || false;
+                ffd.checked = buttonData.freeFireDaimondButton || false;
+
+                // Load link status
+                const linkSnapshot = await get(linkDatabase);
+                linkSwitch.checked = linkSnapshot.val() || false;
+            } catch (error) {
+                showToast(`Failed to load settings: ${error.message}`);
+            }
+        }
+
+        // Save Button Visibility
+        async function saveButtonVisibility() {
+            const settings = {
+                surveyButton: surveySwitch.checked,
+                subscribeButton: subscribeSwitch.checked,
+                youtubeButton: youtubeSwitch.checked,
+                playcardgameButton: playcardgameSwitch.checked,
+                colourchooseButton: colourchooseSwitch.checked,
+                depositpointButton: depositpointSwitch.checked,
+                transferpointButton: transferpointSwitch.checked,
+                videoButton: videoSwitch.checked,
+                facebookButton: facebookSwitch.checked,
+                instaButton: instaSwitch.checked,
+                tiktokButton: ttSwitch.checked,
+                adsWatchButton: adsSwitch.checked,
+                gameButton: gameSwitch.checked,
+                tictacButton: ticSwitch.checked,
+                movieButton: mSwitch.checked,
+                aiToolButton: aitoolSwitch.checked,
+                freeNetButton: fNetSwitch.checked,
+                freeFireButton: ffGameSwitch.checked,
+                miniTaskButton: TaskSwitch.checked,
+                bonusButton: bonus.checked,
+                emailButton: email.checked,
+                reviewButton: review.checked,
+                applyButton: apply.checked,
+                spotifyButton: sp.checked,
+                freeFireDaimondButton: ffd.checked
+            };
+
+            try {
+                await set(buttonDatabase, settings);
+                await set(linkDatabase, linkSwitch.checked);
+                showToast('Settings updated successfully');
+            } catch (error) {
+                showToast(`Failed to update settings: ${error.message}`);
+            }
+        }
+
+        // Navigation Button Listeners
+        btnSubscribeManagement.addEventListener('click', () => {
+            showToast('Subscribe Management page not implemented');
+            // Placeholder: window.location.href = 'admin_subscribe.html';
+        });
+
+        btnQuestionManagement.addEventListener('click', () => {
+            showToast('Question Management page not implemented');
+            // Placeholder: window.location.href = 'admin_question.html';
+        });
+
+        btnyoutube.addEventListener('click', () => {
+            window.location.href = 'admin_youtube_settings.html';
+        });
+
+        btnTaasGameManagement.addEventListener('click', () => {
+            showToast('Card Game Management page not implemented');
+            // Placeholder: window.location.href = 'admin_cardgame.html';
+        });
+
+        btncolourchoose.addEventListener('click', () => {
+            showToast('Colour Choose Management page not implemented');
+            // Placeholder: window.location.href = 'admin_colourchoose.html';
+        });
+
+        btntransferpoint.addEventListener('click', () => {
+            showToast('Transfer Point Management page not implemented');
+            // Placeholder: window.location.href = 'admin_transfer.html';
+        });
+
+        btndepositpoint.addEventListener('click', () => {
+            window.location.href = 'admin_deposit.html';
+        });
+
+        btnfb.addEventListener('click', () => {
+            showToast('Facebook Management page not implemented');
+            // Placeholder: window.location.href = 'admin_facebook.html';
+        });
+
+        btnm.addEventListener('click', () => {
+            showToast('Movie Management page not implemented');
+            // Placeholder: window.location.href = 'admin_movie.html';
+        });
+
+        btntt.addEventListener('click', () => {
+            window.location.href = 'admin_tiktok_settings.html';
+        });
+
+        task.addEventListener('click', () => {
+            showToast('Mini Task Management page not implemented');
+            // Placeholder: window.location.href = 'admin_mini_task.html';
+        });
+
+        sm.addEventListener('click', () => {
+            showToast('Suggestion Management page not implemented');
+            // Placeholder: window.location.href = 'admin_suggestion.html';
+        });
+
+        // Save Button Listener
+        saveButton.addEventListener('click', saveButtonVisibility);
+
+        // Initialize Settings
+        loadSettings();
+
+        // Fallback for Font Awesome failure
+        window.addEventListener('load', () => {
+            if (!document.querySelector('.fa-save')) {
+                console.warn('Font Awesome icons not loaded, applying fallback text');
+                document.querySelectorAll('button').forEach(btn => {
+                    btn.textContent = btn.textContent.replace(/.*?\s/, '');
+                });
+            }
+        });
+    </script>
+</body>
+</html>

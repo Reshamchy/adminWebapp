@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics - FireAuth</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" rel="stylesheet" integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            min-height: 100vh;
+            display: flex;
+            overflow-x: auto;
+            position: relative;
+            font-size: calc(0.5vw + 0.65rem); /* Further reduced base font */
+        }
+
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: -2;
+        }
+
+        .bg-animation::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, 
+                transparent 0%, 
+                rgba(255, 255, 255, 0.1) 25%, 
+                transparent 50%, 
+                rgba(255, 255, 255, 0.1) 75%, 
+                transparent 100%);
+            animation: shimmer 20s infinite linear;
+        }
+
+        @keyframes shimmer {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .geometric-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .shape {
+            position: absolute;
+            opacity: 0.1;
+            animation: float-shapes 15s infinite ease-in-out;
+        }
+
+        .shape:nth-child(1) {
+            top: 10%;
+            left: 10%;
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            border-radius: 20px;
+            animation-delay: 0s;
+        }
+
+        .shape:nth-child(2) {
+            top: 20%;
+            right: 15%;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(45deg, #4ecdc4, #44a08d);
+            border-radius: 50%;
+            animation-delay: 2s;
+        }
+
+        .shape:nth-child(3) {
+            bottom: 20%;
+            left: 20%;
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(45deg, #a8e6cf, #88d8c0);
+            border-radius: 30px;
+            animation-delay: 4s;
+        }
+
+        .shape:nth-child(4) {
+            bottom: 30%;
+            right: 10%;
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(45deg, #ffd93d, #ff6b6b);
+            border-radius: 15px;
+            animation-delay: 6s;
+        }
+
+        @keyframes float-shapes {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+
+        .sidebar {
+            width: 250px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(30px);
+            border-right: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            max-height: 100vh;
+            overflow-y: auto;
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.15);
+            z-index: 10;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+        }
+
+        .sidebar::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .sidebar h2 {
+            color: white;
+            font-size: 1.1rem; /* Reduced */
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .sidebar a {
+            display: block;
+            color: white;
+            text-decoration: none;
+            padding: 12px; /* Reduced padding */
+            margin-bottom: 8px;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            font-size: 0.85rem; /* Reduced */
+        }
+
+        .sidebar a:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateX(5px);
+        }
+
+        .sidebar a.active {
+            background: rgba(255, 71, 87, 0.3);
+        }
+
+        .main-content {
+            margin-left: 270px;
+            padding: 2vw 3vw;
+            width: calc(100% - 270px);
+            min-width: 700px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(30px);
+            border-radius: 25px;
+            padding: 3vw 4vw;
+            box-shadow: 
+                0 25px 45px rgba(0, 0, 0, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            animation: containerGlow 4s infinite alternate;
+            max-width: 90vw;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        @keyframes containerGlow {
+            0% { box-shadow: 0 25px 45px rgba(0, 0, 0, 0.15), 0 0 30px rgba(102, 126, 234, 0.3); }
+            100% { box-shadow: 0 25px 45px rgba(0, 0, 0, 0.15), 0 0 50px rgba(118, 75, 162, 0.4); }
+        }
+
+        h3 {
+            color: #ff4757;
+            font-size: calc(0.7vw + 0.9rem); /* Reduced */
+            font-weight: 600;
+            margin-bottom: 2vw;
+            text-align: center;
+        }
+
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); /* Smaller cards */
+            gap: 1.2vw;
+            margin-bottom: 2.5vw;
+        }
+
+        .metric-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 1.2vw;
+            text-align: center;
+            color: white;
+            font-size: 0.85rem; /* Reduced */
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .metric-card h4 {
+            font-size: 0.9rem; /* Reduced */
+            margin-bottom: 0.4vw;
+            color: #ff4757;
+        }
+
+        .metric-card p {
+            font-size: 0.9rem; /* Reduced */
+            font-weight: 500;
+        }
+
+        .chart-container {
+            max-width: 550px; /* Slightly smaller */
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 1.2vw;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            min-height: 300px; /* Ensure space for chart */
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            font-size: 0.85rem; /* Reduced */
+        }
+
+        .toast.show {
+            opacity: 1;
+        }
+
+        /* Media Queries for Desktop */
+        @media screen and (min-width: 1024px) {
+            .main-content {
+                padding: 2.5vw 3.5vw;
+            }
+
+            .container {
+                padding: 3.5vw 4.5vw;
+                max-width: 85vw;
+            }
+
+            .metric-card {
+                font-size: 0.8rem;
+                padding: 1vw;
+            }
+
+            .metric-card h4 {
+                font-size: 0.85rem;
+            }
+
+            .metric-card p {
+                font-size: 0.85rem;
+            }
+
+            h3 {
+                font-size: calc(0.6vw + 0.85rem);
+            }
+
+            .chart-container {
+                max-width: 600px;
+            }
+        }
+
+        @media screen and (min-width: 1440px) {
+            .container {
+                max-width: 80vw;
+            }
+
+            .metric-card {
+                font-size: 0.85rem;
+            }
+
+            .chart-container {
+                max-width: 650px;
+            }
+        }
+
+        @media screen and (min-width: 1920px) {
+            body {
+                font-size: calc(0.4vw + 0.7rem);
+            }
+
+            .container {
+                max-width: 75vw;
+            }
+
+            .metric-card {
+                font-size: 0.9rem;
+                padding: 1.2vw;
+            }
+
+            .metric-card h4 {
+                font-size: 0.95rem;
+            }
+
+            .metric-card p {
+                font-size: 0.9rem;
+            }
+
+            h3 {
+                font-size: calc(0.5vw + 0.95rem);
+            }
+
+            .chart-container {
+                max-width: 700px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-animation"></div>
+    <div class="geometric-bg">
+        <div class="shape"></div>
+        <div class="shape"></div>
+        <div class="shape"></div>
+        <div class="shape"></div>
+    </div>
+
+    <div class="sidebar">
+        <h2>Admin Panel</h2>
+         <a href="admindashboard.html">Dashboard</a>
+        <a href="user_rank.html">User Rankings</a>
+        <a href="config_coins.html">Configure Coins</a>
+        <a href="send_email.html">Send Email</a>
+        <a href="generate_bonus.html">Generate Bonus</a>
+        <a href="search.html">Search Users</a>
+        <a href="manage_withdrawal.html">Manage Withdrawals</a>
+        <a href="manage_users.html">Manage Users</a>
+        <a href="manage_coins.html">Manage Coins</a>
+        <a href="manage_staff_applications.html">Manage Staff Applications</a>
+        <a href="manage_suggestions.html">Manage Suggestions</a>
+         <a href="usdmanage.html">Manage Withdrawals Usd</a>
+        <a href="facebook&insta.html">Social Ads Settings</a>
+        <a href="yotube.html">YouTube Settings</a>
+        <a href="tiktok.html" class="active">TikTok Settings</a>
+        <a href="game.html" class="active">Manage Game</a>
+        <a href="movie.html" class="active">Manage Movie</a>
+        <a href="admin_diamond.html" class="active">Manage Diamonds</a>
+        <a href="admin_free_net.html" class="active">Manage Data Pack</a>
+        <a href="admin_subscription_approve.html" class="active">Manage Subscriptions</a>
+        <a href="change_password.html" class="active">Manage Password</a>
+        <a href="config_coins.html" class="active">Manage Config Coins</a>
+        <a href="deposit.html" class="active">Manage Deposit</a>
+        <a href="earn.html" class="active">Manage Earn</a>
+        <a href="generate_bonus.html" class="active">Manage Bonus Voucher</a>
+        <a href="manage_suggestions.html" class="active">Manage Suggestions Box</a>
+        <a href="minitask.html" class="active">Manage Mini Task</a>
+    </div>
+
+    <div class="main-content">
+        <div class="container">
+            <h3>Analytics Dashboard</h3>
+            <div class="loading" id="loading">Loading analytics...</div>
+            <div class="metrics" id="metrics" style="display: none;">
+                <div class="metric-card">
+                    <h4>Total Users</h4>
+                    <p id="totalUsers">0</p>
+                </div>
+                <div class="metric-card">
+                    <h4>Total Points</h4>
+                    <p id="totalPoints">0</p>
+                </div>
+                <div class="metric-card">
+                    <h4>Conversion Rate</h4>
+                    <p id="conversionRate">0</p>
+                </div>
+                <div class="metric-card">
+                    <h4>Total Converted Amount</h4>
+                    <p id="totalConvertedAmount">0</p>
+                </div>
+            </div>
+            <div class="chart-container">
+                <canvas id="profitLossChart"></canvas>
+            </div>
+            <div class="toast" id="toast"></div>
+        </div>
+    </div>
+
+    ```chartjs
+    {
+        "type": "bar",
+        "data": {
+            "labels": ["Financial Overview"],
+            "datasets": [
+                {
+                    "label": "Profit (Converted Amount)",
+                    "data": [0],
+                    "backgroundColor": "#28a745",
+                    "borderColor": "#1e7e34",
+                    "borderWidth": 1
+                },
+                {
+                    "label": "Loss",
+                    "data": [0],
+                    "backgroundColor": "#dc3545",
+                    "borderColor": "#a71d2a",
+                    "borderWidth": 1
+                }
+            ]
+        },
+        "options": {
+            "responsive": true,
+            "maintainAspectRatio": false,
+            "plugins": {
+                "legend": {
+                    "position": "top",
+                    "labels": {
+                        "color": "#ffffff",
+                        "font": {
+                            "size": 11
+                        }
+                    }
+                },
+                "title": {
+                    "display": true,
+                    "text": "Profit vs Loss",
+                    "color": "#ffffff",
+                    "font": {
+                        "size": 14
+                    }
+                }
+            },
+            "scales": {
+                "y": {
+                    "beginAtZero": true,
+                    "title": {
+                        "display": true,
+                        "text": "Amount",
+                        "color": "#ffffff",
+                        "font": {
+                            "size": 11
+                        }
+                    },
+                    "ticks": {
+                        "color": "#ffffff",
+                        "font": {
+                            "size": 9
+                        },
+                        "precision": 2
+                    },
+                    "grid": {
+                        "color": "rgba(255, 255, 255, 0.2)"
+                    }
+                },
+                "x": {
+                    "ticks": {
+                        "color": "#ffffff",
+                        "font": {
+                            "size": 9
+                        }
+                    },
+                    "grid": {
+                        "color": "rgba(255, 255, 255, 0.2)"
+                    }
+                }
+            }
+        }
+    }
+    ```
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { getDatabase, ref, onValue, get } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyD14wwgcUIyiPl_qXvx7CtQTO2DEy465II",
+            authDomain: "my-video-earn-app12.firebaseapp.com",
+            databaseURL: "https://my-video-earn-app12-default-rtdb.firebaseio.com",
+            projectId: "my-video-earn-app12",
+            storageBucket: "my-video-earn-app12.firebasestorage.app",
+            messagingSenderId: "967539655660",
+            appId: "1:967539655660:web:95e773e701d35a252936c9",
+            measurementId: "G-DPWBZT3RN5"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+
+        onAuthStateChanged(auth, (user) => {
+            if (!user || user.email !== 'reshamchaudhary922@gmail.com') {
+                console.log('Unauthorized access, redirecting to index.html');
+                window.location.href = 'index.html';
+            } else {
+                console.log('Admin authenticated:', user.email);
+            }
+        });
+
+        const totalUsers = document.getElementById('totalUsers');
+        const totalPoints = document.getElementById('totalPoints');
+        const conversionRate = document.getElementById('conversionRate');
+        const totalConvertedAmount = document.getElementById('totalConvertedAmount');
+        const toast = document.getElementById('toast');
+        const loading = document.getElementById('loading');
+        const metrics = document.getElementById('metrics');
+
+        // Initialize Chart.js
+        let profitLossChart = null;
+        try {
+            const ctx = document.getElementById('profitLossChart').getContext('2d');
+            profitLossChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Financial Overview'],
+                    datasets: [
+                        {
+                            label: 'Profit (Converted Amount)',
+                            data: [0],
+                            backgroundColor: '#28a745',
+                            borderColor: '#1e7e34',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Loss',
+                            data: [0],
+                            backgroundColor: '#dc3545',
+                            borderColor: '#a71d2a',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                color: '#ffffff',
+                                font: { size: 11 }
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Profit vs Loss',
+                            color: '#ffffff',
+                            font: { size: 14 }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Amount',
+                                color: '#ffffff',
+                                font: { size: 11 }
+                            },
+                            ticks: {
+                                color: '#ffffff',
+                                font: { size: 9 },
+                                precision: 2
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.2)'
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                color: '#ffffff',
+                                font: { size: 9 }
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.2)'
+                            }
+                        }
+                    }
+                }
+            });
+            console.log('Chart initialized successfully');
+        } catch (error) {
+            console.error('Error initializing chart:', error);
+            showToast('Failed to load chart');
+        }
+
+        // Show toast notification
+        function showToast(message) {
+            console.log('Showing toast:', message);
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Show/hide loading state
+        function setLoading(show) {
+            loading.classList.toggle('show', show);
+            metrics.style.display = show ? 'none' : 'grid';
+        }
+
+        // Fetch analytics data
+        function fetchAnalytics() {
+            console.log('Fetching analytics data...');
+            setLoading(true);
+
+            const conversionRateRef = ref(db, 'settings/conversionRates/onePointConversionRate');
+            get(conversionRateRef).then((conversionRateSnapshot) => {
+                const rate = conversionRateSnapshot.exists() ? Number(conversionRateSnapshot.val()) : 0;
+                console.log('Conversion rate fetched:', rate);
+
+                if (rate === 0 || isNaN(rate)) {
+                    console.warn('Invalid or missing conversion rate');
+                    setLoading(false);
+                    showToast('Conversion rate not set');
+                    conversionRate.textContent = 'N/A';
+                    totalConvertedAmount.textContent = '0';
+                    if (profitLossChart) {
+                        profitLossChart.data.datasets[0].data = [0];
+                        profitLossChart.data.datasets[1].data = [0];
+                        profitLossChart.update();
+                    }
+                    return;
+                }
+
+                const usersRef = ref(db, 'users');
+                onValue(usersRef, (snapshot) => {
+                    console.log('Users snapshot received, children count:', snapshot.hasChildren() ? Object.keys(snapshot.val() || {}).length : 0);
+                    let totalPointsValue = 0;
+                    let userCount = 0;
+
+                    if (snapshot.exists()) {
+                        snapshot.forEach((userSnapshot) => {
+                            const points = Number(userSnapshot.child('points').val()) || 0;
+                            if (!isNaN(points)) {
+                                totalPointsValue += points;
+                                userCount++;
+                            } else {
+                                console.warn('Invalid points for user:', userSnapshot.key);
+                            }
+                        });
+
+                        console.log('Calculated - Total points:', totalPointsValue, 'User count:', userCount);
+                        const totalConverted = totalPointsValue * rate;
+
+                        // Update UI
+                        totalUsers.textContent = userCount;
+                        totalPoints.textContent = totalPointsValue;
+                        conversionRate.textContent = rate.toFixed(2);
+                        totalConvertedAmount.textContent = totalConverted.toFixed(2);
+
+                        // Update chart
+                        if (profitLossChart) {
+                            profitLossChart.data.datasets[0].data = [totalConverted];
+                            profitLossChart.data.datasets[1].data = [0]; // Placeholder for loss
+                            profitLossChart.update();
+                            console.log('Chart updated with profit:', totalConverted, 'loss: 0');
+                        }
+                    } else {
+                        console.log('No users found');
+                        totalUsers.textContent = '0';
+                        totalPoints.textContent = '0';
+                        conversionRate.textContent = rate.toFixed(2);
+                        totalConvertedAmount.textContent = '0';
+                        if (profitLossChart) {
+                            profitLossChart.data.datasets[0].data = [0];
+                            profitLossChart.data.datasets[1].data = [0];
+                            profitLossChart.update();
+                        }
+                        showToast('No users found');
+                    }
+                    setLoading(false);
+                }, (error) => {
+                    console.error('Error fetching users:', error);
+                    setLoading(false);
+                    showToast('Error fetching users: ' + error.message);
+                    totalUsers.textContent = '0';
+                    totalPoints.textContent = '0';
+                    conversionRate.textContent = rate.toFixed(2);
+                    totalConvertedAmount.textContent = '0';
+                    if (profitLossChart) {
+                        profitLossChart.data.datasets[0].data = [0];
+                        profitLossChart.data.datasets[1].data = [0];
+                        profitLossChart.update();
+                    }
+                });
+            }).catch((error) => {
+                console.error('Error fetching conversion rate:', error);
+                setLoading(false);
+                showToast('Error fetching conversion rate: ' + error.message);
+                totalUsers.textContent = '0';
+                totalPoints.textContent = '0';
+                conversionRate.textContent = '0';
+                totalConvertedAmount.textContent = '0';
+                if (profitLossChart) {
+                    profitLossChart.data.datasets[0].data = [0];
+                    profitLossChart.data.datasets[1].data = [0];
+                    profitLossChart.update();
+                }
+            });
+        }
+
+        // Load analytics on page load
+        console.log('Initializing analytics page...');
+        fetchAnalytics();
+    </script>
+</body>
+</html>

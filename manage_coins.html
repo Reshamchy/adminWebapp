@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>App Settings - FireAuth</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" rel="stylesheet" integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" crossorigin="anonymous">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            min-height: 100vh;
+            display: flex;
+            overflow-x: auto;
+            position: relative;
+            font-size: 16px;
+        }
+
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: -2;
+        }
+
+        .bg-animation::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, 
+                transparent 0%, 
+                rgba(255, 255, 255, 0.1) 25%, 
+                transparent 50%, 
+                rgba(255, 255, 255, 0.1) 75%, 
+                transparent 100%);
+            animation: shimmer 20s infinite linear;
+        }
+
+        @keyframes shimmer {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .geometric-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .shape {
+            position: absolute;
+            opacity: 0.1;
+            animation: float-shapes 15s infinite ease-in-out;
+        }
+
+        .shape:nth-child(1) {
+            top: 10%;
+            left: 10%;
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            border-radius: 20px;
+            animation-delay: 0s;
+        }
+
+        .shape:nth-child(2) {
+            top: 20%;
+            right: 15%;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(45deg, #4ecdc4, #44a08d);
+            border-radius: 50%;
+            animation-delay: 2s;
+        }
+
+        .shape:nth-child(3) {
+            bottom: 20%;
+            left: 20%;
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(45deg, #a8e6cf, #88d8c0);
+            border-radius: 30px;
+            animation-delay: 4s;
+        }
+
+        .shape:nth-child(4) {
+            bottom: 30%;
+            right: 10%;
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(45deg, #ffd93d, #ff6b6b);
+            border-radius: 15px;
+            animation-delay: 6s;
+        }
+
+        @keyframes float-shapes {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+
+    .sidebar {
+            width: 250px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(30px);
+            border-right: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            max-height: 100vh;
+            overflow-y: auto;
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.15);
+            z-index: 10;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+        }
+
+         .sidebar::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+
+        .sidebar h2 {
+            color: white;
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .sidebar a {
+            display: block;
+            color: white;
+            text-decoration: none;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .sidebar a:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateX(5px);
+        }
+
+        .sidebar a.active {
+            background: rgba(255, 71, 87, 0.3);
+        }
+
+        .main-content {
+            margin-left: 270px;
+            padding: 2rem 3rem;
+            width: calc(100% - 270px);
+            min-width: 700px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(30px);
+            border-radius: 25px;
+            padding: 2rem 3rem;
+            box-shadow: 
+                0 25px 45px rgba(0, 0, 0, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            animation: containerGlow 4s infinite alternate;
+            max-width: 90vw;
+            margin: 0 auto;
+        }
+
+        @keyframes containerGlow {
+            0% { box-shadow: 0 25px 45px rgba(0, 0, 0, 0.15), 0 0 30px rgba(102, 126, 234, 0.3); }
+            100% { box-shadow: 0 25px 45px rgba(0, 0, 0, 0.15), 0 0 50px rgba(118, 75, 162, 0.4); }
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .toast.show {
+            opacity: 1;
+        }
+
+        /* Media Queries */
+        @media screen and (min-width: 1024px) {
+            .main-content {
+                padding: 3rem 4rem;
+            }
+
+            .container {
+                padding: 3rem 4rem;
+                max-width: 85vw;
+            }
+        }
+
+        @media screen and (min-width: 1440px) {
+            .container {
+                max-width: 80vw;
+            }
+        }
+
+        @media screen and (min-width: 1920px) {
+            .container {
+                max-width: 75vw;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-animation"></div>
+    <div class="geometric-bg">
+        <div class="shape"></div>
+        <div class="shape"></div>
+        <div class="shape"></div>
+        <div class="shape"></div>
+    </div>
+
+    <div class="sidebar">
+        <h2>Admin Panel</h2>
+         <a href="adminstatictis.html">Dashboard</a>
+        <a href="user_rank.html">User Rankings</a>
+        <a href="config_coins.html">Configure Coins</a>
+        <a href="send_email.html">Send Email</a>
+        <a href="generate_bonus.html">Generate Bonus</a>
+        <a href="search.html">Search Users</a>
+        <a href="manage_withdrawal.html">Manage Withdrawals</a>
+        <a href="manage_users.html">Manage Users</a>
+        <a href="manage_coins.html">Manage Coins</a>
+        <a href="manage_staff_applications.html">Manage Staff Applications</a>
+        <a href="manage_suggestions.html">Manage Suggestions</a>
+         <a href="usdmanage.html">Manage Withdrawals Usd</a>
+        <a href="facebook&insta.html">Social Ads Settings</a>
+        <a href="yotube.html">YouTube Settings</a>
+        <a href="tiktok.html" class="active">TikTok Settings</a>
+        <a href="game.html" class="active">Manage Game</a>
+        <a href="movie.html" class="active">Manage Movie</a>
+        <a href="admin_diamond.html" class="active">Manage Diamonds</a>
+        <a href="admin_free_net.html" class="active">Manage Data Pack</a>
+        <a href="admin_subscription_approve.html" class="active">Manage Subscriptions</a>
+        <a href="change_password.html" class="active">Manage Password</a>
+        <a href="config_coins.html" class="active">Manage Config Coins</a>
+        <a href="deposit.html" class="active">Manage Deposit</a>
+        <a href="earn.html" class="active">Manage Earn</a>
+        <a href="generate_bonus.html" class="active">Manage Bonus Voucher</a>
+        <a href="manage_suggestions.html" class="active">Manage Suggestions Box</a>
+        <a href="minitask.html" class="active">Manage Mini Task</a>
+
+    </div>
+
+    <div class="main-content">
+        <div class="container">
+            <h3 class="text-2xl font-semibold text-red-500 mb-6 text-center">App Settings</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Referral Bonus -->
+                <div class="flex flex-col">
+                    <label class="text-white mb-2">Referral Bonus (Rate)</label>
+                    <input id="referralBonusEditText" type="number" step="1" class="p-2 rounded bg-gray-800 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500" placeholder="Enter referral bonus">
+                    <button id="updateReferralBonusButton" class="mt-2 bg-red-500 hover:bg-red-600 text-white p-2 rounded flex items-center justify-center">
+                        <i class="fas fa-save mr-2"></i> Update Referral Bonus
+                    </button>
+                </div>
+                <!-- Points to Cash Conversion -->
+                <div class="flex flex-col">
+                    <label class="text-white mb-2">Points to Cash Conversion</label>
+                    <input id="pointsToCashEditText" type="number" step="0.01" class="p-2 rounded bg-gray-800 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500" placeholder="Enter points to cash rate">
+                    <button id="updateConversionRatesButton" class="mt-2 bg-red-500 hover:bg-red-600 text-white p-2 rounded flex items-center justify-center">
+                        <i class="fas fa-save mr-2"></i> Update Conversion Rates
+                    </button>
+                </div>
+                <!-- Minimum Withdrawal Points -->
+                <div class="flex flex-col">
+                    <label class="text-white mb-2">Minimum Withdrawal Points</label>
+                    <input id="minimumWithdrawalPointsEditText" type="number" step="1" class="p-2 rounded bg-gray-800 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500" placeholder="Enter minimum withdrawal points">
+                    <button id="updateMinimumWithdrawalPointsButton" class="mt-2 bg-red-500 hover:bg-red-600 text-white p-2 rounded flex items-center justify-center">
+                        <i class \`fas fa-save mr-2"></i> Update Minimum Withdrawal
+                    </button>
+                </div>
+                <!-- Withdrawal Fee -->
+                <div class="flex flex-col">
+                    <label class="text-white mb-2">Withdrawal Fee</label>
+                    <input id="withdrawalFeeEditText" type="number" step="0.01" class="p-2 rounded bg-gray-800 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500" placeholder="Enter withdrawal fee">
+                    <button id="updateWithdrawalFeeButton" class="mt-2 bg-red-500 hover:bg-red-600 text-white p-2 rounded flex items-center justify-center">
+                        <i class="fas fa-save mr-2"></i> Update Withdrawal Fee
+                    </button>
+                </div>
+                <!-- One Point Conversion Rate -->
+                <div class="flex flex-col">
+                    <label class="text-white mb-2">One Point Conversion Rate</label>
+                    <input id="onePointConversionRateEditText" type="number" step="0.01" class="p-2 rounded bg-gray-800 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500" placeholder="Enter one point conversion rate">
+                    <button id="updateOnePointConversionRateButton" class="mt-2 bg-red-500 hover:bg-red-600 text-white p-2 rounded flex items-center justify-center">
+                        <i class="fas fa-save mr-2"></i> Update One Point Conversion
+                    </button>
+                </div>
+                <!-- Transfer Fee -->
+                <div class="flex flex-col">
+                    <label class="text-white mb-2">Transfer Fee</label>
+                    <input id="transferFeeEditText" type="number" step="0.01" class="p-2 rounded bg-gray-800 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500" placeholder="Enter transfer fee">
+                    <button id="transferFeeButton" class="mt-2 bg-red-500 hover:bg-red-600 text-white p-2 rounded flex items-center justify-center">
+                        <i class="fas fa-save mr-2"></i> Update Transfer Fee
+                    </button>
+                </div>
+                <!-- Daily Reward -->
+                <div class="flex flex-col">
+                    <label class="text-white mb-2">Daily Reward</label>
+                    <input id="dailyEditText" type="number" step="1" class="p-2 rounded bg-gray-800 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500" placeholder="Enter daily reward">
+                    <button id="dailyButton" class="mt-2 bg-red-500 hover:bg-red-600 text-white p-2 rounded flex items-center justify-center">
+                        <i class="fas fa-save mr-2"></i> Update Daily Reward
+                    </button>
+                </div>
+                <!-- Email Reward -->
+                <div class="flex flex-col">
+                    <label class="text-white mb-2">Email Reward</label>
+                    <input id="emailEditText" type="number" step="1" class="p-2 rounded bg-gray-800 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500" placeholder="Enter email reward">
+                    <button id="emailButton" class="mt-2 bg-red-500 hover:bg-red-600 text-white p-2 rounded flex items-center justify-center">
+                        <i class="fas fa-save mr-2"></i> Update Email Reward
+                    </button>
+                </div>
+                <!-- Ads Points -->
+                <div class="flex flex-col">
+                    <label class="text-white mb-2">Ads Points</label>
+                    <input id="adsEditText" type="number" step="0.01" class="p-2 rounded bg-gray-800 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500" placeholder="Enter ads points">
+                    <button id="adsButton" class="mt-2 bg-red-500 hover:bg-red-600 text-white p-2 rounded flex items-center justify-center">
+                        <i class="fas fa-save mr-2"></i> Update Ads Points
+                    </button>
+                </div>
+                <!-- App Fee -->
+                <div class="flex flex-col">
+                    <label class="text-white mb-2">App Fee</label>
+                    <input id="appEditText" type="number" step="0.01" class="p-2 rounded bg-gray-800 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500" placeholder="Enter app fee">
+                    <button id="appButton" class="mt-2 bg-red-500 hover:bg-red-600 text-white p-2 rounded flex items-center justify-center">
+                        <i class="fas fa-save mr-2"></i> Update App Fee
+                    </button>
+                </div>
+                <!-- Minimum Withdrawal (USD) -->
+                <div class="flex flex-col">
+                    <label class="text-white mb-2">Minimum Withdrawal (USD)</label>
+                    <input id="minWithdrawalEditText" type="number" step="0.01" class="p-2 rounded bg-gray-800 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500" placeholder="Enter minimum withdrawal (USD)">
+                    <button id="minWithdrawalButton" class="mt-2 bg-red-500 hover:bg-red-600 text-white p-2 rounded flex items-center justify-center">
+                        <i class="fas fa-save mr-2"></i> Update Min Withdrawal (USD)
+                    </button>
+                </div>
+                <!-- Wallet Fee -->
+                <div class="flex flex-col">
+                    <label class="text-white mb-2">Wallet Fee</label>
+                    <input id="walletFeeEditText" type="number" step="0.01" class="p-2 rounded bg-gray-800 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500" placeholder="Enter wallet fee">
+                    <button id="walletFeeButton" class="mt-2 bg-red-500 hover:bg-red-600 text-white p-2 rounded flex items-center justify-center">
+                        <i class="fas fa-save mr-2"></i> Update Wallet Fee
+                    </button>
+                </div>
+                <!-- Service Fee -->
+                <div class="flex flex-col">
+                    <label class="text-white mb-2">Service Fee</label>
+                    <input id="servicefeeEditText" type="number" step="0.01" class="p-2 rounded bg-gray-800 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500" placeholder="Enter service fee">
+                    <button id="serviceFeeButton" class="mt-2 bg-red-500 hover:bg-red-600 text-white p-2 rounded flex items-center justify-center">
+                        <i class="fas fa-save mr-2"></i> Update Service Fee
+                    </button>
+                </div>
+                <!-- Withdrawal Fee (USD) -->
+                <div class="flex flex-col">
+                    <label class="text-white mb-2">Withdrawal Fee (USD)</label>
+                    <input id="withdrawalFee1EditText" type="number" step="0.01" class="p-2 rounded bg-gray-800 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500" placeholder="Enter withdrawal fee (USD)">
+                    <button id="withdrawalFeeButton" class="mt-2 bg-red-500 hover:bg-red-600 text-white p-2 rounded flex items-center justify-center">
+                        <i class="fas fa-save mr-2"></i> Update Withdrawal Fee (USD)
+                    </button>
+                </div>
+                <!-- Conversion Rate (USD) -->
+                <div class="flex flex-col">
+                    <label class="text-white mb-2">USD Conversion Rate</label>
+                    <input id="conversionRateEditText" type="number" step="0.01" class="p-2 rounded bg-gray-800 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500" placeholder="Enter USD conversion rate">
+                    <button id="conversionRateButton" class="mt-2 bg-red-500 hover:bg-red-600 text-white p-2 rounded flex items-center justify-center">
+                        <i class="fas fa-save mr-2"></i> Update USD Conversion Rate
+                    </button>
+                </div>
+            </div>
+            <div class="toast" id="toast"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { getDatabase, ref, onValue, set } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyD14wwgcUIyiPl_qXvx7CtQTO2DEy465II",
+            authDomain: "my-video-earn-app12.firebaseapp.com",
+            databaseURL: "https://my-video-earn-app12-default-rtdb.firebaseio.com",
+            projectId: "my-video-earn-app12",
+            storageBucket: "my-video-earn-app12.firebasestorage.app",
+            messagingSenderId: "967539655660",
+            appId: "1:967539655660:web:95e773e701d35a252936c9",
+            measurementId: "G-DPWBZT3RN5"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+        const settingsRef = ref(db, 'settings');
+
+        // UI Elements
+        const referralBonusEditText = document.getElementById('referralBonusEditText');
+        const pointsToCashEditText = document.getElementById('pointsToCashEditText');
+        const minimumWithdrawalPointsEditText = document.getElementById('minimumWithdrawalPointsEditText');
+        const withdrawalFeeEditText = document.getElementById('withdrawalFeeEditText');
+        const onePointConversionRateEditText = document.getElementById('onePointConversionRateEditText');
+        const transferFeeEditText = document.getElementById('transferFeeEditText');
+        const dailyEditText = document.getElementById('dailyEditText');
+        const emailEditText = document.getElementById('emailEditText');
+        const adsEditText = document.getElementById('adsEditText');
+        const appEditText = document.getElementById('appEditText');
+        const minWithdrawalEditText = document.getElementById('minWithdrawalEditText');
+        const walletFeeEditText = document.getElementById('walletFeeEditText');
+        const servicefeeEditText = document.getElementById('servicefeeEditText');
+        const withdrawalFee1EditText = document.getElementById('withdrawalFee1EditText');
+        const conversionRateEditText = document.getElementById('conversionRateEditText');
+
+        const updateReferralBonusButton = document.getElementById('updateReferralBonusButton');
+        const updateConversionRatesButton = document.getElementById('updateConversionRatesButton');
+        const updateMinimumWithdrawalPointsButton = document.getElementById('updateMinimumWithdrawalPointsButton');
+        const updateWithdrawalFeeButton = document.getElementById('updateWithdrawalFeeButton');
+        const updateOnePointConversionRateButton = document.getElementById('updateOnePointConversionRateButton');
+        const transferFeeButton = document.getElementById('transferFeeButton');
+        const dailyButton = document.getElementById('dailyButton');
+        const emailButton = document.getElementById('emailButton');
+        const adsButton = document.getElementById('adsButton');
+        const appButton = document.getElementById('appButton');
+        const minWithdrawalButton = document.getElementById('minWithdrawalButton');
+        const walletFeeButton = document.getElementById('walletFeeButton');
+        const serviceFeeButton = document.getElementById('serviceFeeButton');
+        const withdrawalFeeButton = document.getElementById('withdrawalFeeButton');
+        const conversionRateButton = document.getElementById('conversionRateButton');
+        const toast = document.getElementById('toast');
+
+        // Show Toast Notification
+        function showToast(message) {
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Auth Check
+        onAuthStateChanged(auth, (user) => {
+            if (!user || user.email !== 'reshamchaudhary922@gmail.com') {
+                window.location.href = 'index.html';
+            }
+        });
+
+        // Fetch Settings
+        function fetchSettings() {
+            onValue(settingsRef, (snapshot) => {
+                const settings = snapshot.val();
+                if (settings) {
+                    referralBonusEditText.value = settings.referralBonus?.rate || '';
+                    pointsToCashEditText.value = settings.conversionRates?.pointsToCash || '';
+                    minimumWithdrawalPointsEditText.value = settings.minimumWithdrawalPoints || '';
+                    withdrawalFeeEditText.value = settings.withdrawalFee || '';
+                    onePointConversionRateEditText.value = settings.conversionRates?.onePointConversionRate || '';
+                    transferFeeEditText.value = settings.transferFee || '';
+                    dailyEditText.value = settings.dailyReward || '';
+                    emailEditText.value = settings.emailReward || '';
+                    adsEditText.value = settings.adsPoints || '';
+                    appEditText.value = settings.appFee || '';
+                    minWithdrawalEditText.value = settings.minWithdrawal || '';
+                    walletFeeEditText.value = settings.walletFee || '';
+                    servicefeeEditText.value = settings.serviceFee || '';
+                    withdrawalFee1EditText.value = settings.withdrawalFee1 || '';
+                    conversionRateEditText.value = settings.conversionRate || '';
+                }
+            }, (error) => {
+                showToast(`Failed to fetch settings: ${error.message}`);
+            });
+        }
+
+        // Update Setting
+        function updateSetting(key, value, description, nestedKey = null) {
+            if (value !== null && value !== '') {
+                const path = nestedKey ? ref(db, `settings/${key}/${nestedKey}`) : ref(db, `settings/${key}`);
+                set(path, value)
+                    .then(() => showToast(`${description} updated successfully`))
+                    .catch((error) => showToast(`Failed to update ${description}: ${error.message}`));
+            } else {
+                showToast(`Please enter a valid value for ${description}`);
+            }
+        }
+
+        // Button Listeners
+        updateReferralBonusButton.addEventListener('click', () => {
+            const value = parseInt(referralBonusEditText.value);
+            if (!isNaN(value)) {
+                updateSetting('referralBonus', value, 'Referral Bonus', 'rate');
+            } else {
+                showToast('Please enter a valid number for Referral Bonus');
+            }
+        });
+
+        updateConversionRatesButton.addEventListener('click', () => {
+            const pointsToCash = parseFloat(pointsToCashEditText.value);
+            if (!isNaN(pointsToCash)) {
+                set(ref(db, 'settings/conversionRates'), {
+                    pointsToCash: pointsToCash,
+                    onePointConversionRate: parseFloat(onePointConversionRateEditText.value) || 0
+                })
+                    .then(() => showToast('Conversion Rates Updated'))
+                    .catch(() => showToast('Failed to update Conversion Rates'));
+            } else {
+                showToast('Please enter a valid number for Points to Cash');
+            }
+        });
+
+        updateMinimumWithdrawalPointsButton.addEventListener('click', () => {
+            const value = parseInt(minimumWithdrawalPointsEditText.value);
+            if (!isNaN(value)) {
+                updateSetting('minimumWithdrawalPoints', value, 'Minimum Withdrawal Points');
+            } else {
+                showToast('Please enter a valid number for Minimum Withdrawal Points');
+            }
+        });
+
+        updateWithdrawalFeeButton.addEventListener('click', () => {
+            const value = parseFloat(withdrawalFeeEditText.value);
+            if (!isNaN(value)) {
+                updateSetting('withdrawalFee', value, 'Withdrawal Fee');
+            } else {
+                showToast('Please enter a valid number for Withdrawal Fee');
+            }
+        });
+
+        updateOnePointConversionRateButton.addEventListener('click', () => {
+            const value = parseFloat(onePointConversionRateEditText.value);
+            if (!isNaN(value)) {
+                updateSetting('conversionRates', value, 'One Point Conversion Rate', 'onePointConversionRate');
+            } else {
+                showToast('Please enter a valid number for One Point Conversion Rate');
+            }
+        });
+
+        transferFeeButton.addEventListener('click', () => {
+            const value = parseFloat(transferFeeEditText.value);
+            if (!isNaN(value)) {
+                updateSetting('transferFee', value, 'Transfer Fee');
+            } else {
+                showToast('Please enter a valid number for Transfer Fee');
+            }
+        });
+
+        dailyButton.addEventListener('click', () => {
+            const value = parseInt(dailyEditText.value);
+            if (!isNaN(value)) {
+                updateSetting('dailyReward', value, 'Daily Reward');
+            } else {
+                showToast('Please enter a valid number for Daily Reward');
+            }
+        });
+
+        emailButton.addEventListener('click', () => {
+            const value = parseInt(emailEditText.value);
+            if (!isNaN(value)) {
+                updateSetting('emailReward', value, 'Email Reward');
+            } else {
+                showToast('Please enter a valid number for Email Reward');
+            }
+        });
+
+        adsButton.addEventListener('click', () => {
+            const value = parseFloat(adsEditText.value);
+            if (!isNaN(value)) {
+                updateSetting('adsPoints', value, 'Ads Points');
+            } else {
+                showToast('Please enter a valid number for Ads Points');
+            }
+        });
+
+        appButton.addEventListener('click', () => {
+            const value = parseFloat(appEditText.value);
+            if (!isNaN(value)) {
+                updateSetting('appFee', value, 'App Fee');
+            } else {
+                showToast('Please enter a valid number for App Fee');
+            }
+        });
+
+        minWithdrawalButton.addEventListener('click', () => {
+            const value = parseFloat(minWithdrawalEditText.value);
+            if (!isNaN(value)) {
+                updateSetting('minWithdrawal', value, 'Minimum Withdrawal (USD)');
+            } else {
+                showToast('Please enter a valid number for Minimum Withdrawal (USD)');
+            }
+        });
+
+        walletFeeButton.addEventListener('click', () => {
+            const value = parseFloat(walletFeeEditText.value);
+            if (!isNaN(value)) {
+                updateSetting('walletFee', value, 'Wallet Fee');
+            } else {
+                showToast('Please enter a valid number for Wallet Fee');
+            }
+        });
+
+        serviceFeeButton.addEventListener('click', () => {
+            const value = parseFloat(servicefeeEditText.value);
+            if (!isNaN(value)) {
+                updateSetting('serviceFee', value, 'Service Fee');
+            } else {
+                showToast('Please enter a valid number for Service Fee');
+            }
+        });
+
+        withdrawalFeeButton.addEventListener('click', () => {
+            const value = parseFloat(withdrawalFee1EditText.value);
+            if (!isNaN(value)) {
+                updateSetting('withdrawalFee1', value, 'Withdrawal Fee (USD)');
+            } else {
+                showToast('Please enter a valid number for Withdrawal Fee (USD)');
+            }
+        });
+
+        conversionRateButton.addEventListener('click', () => {
+            const value = parseFloat(conversionRateEditText.value);
+            if (!isNaN(value)) {
+                updateSetting('conversionRate', value, 'USD Conversion Rate');
+            } else {
+                showToast('Please enter a valid number for USD Conversion Rate');
+            }
+        });
+
+        // Initialize
+        fetchSettings();
+
+        // Fallback for Font Awesome failure
+        window.addEventListener('load', () => {
+            if (!document.querySelector('.fa-save')) {
+                console.warn('Font Awesome icons not loaded, applying fallback text');
+                document.querySelectorAll('button').forEach(btn => {
+                    btn.textContent = btn.textContent.replace(/.*?\s/, '');
+                });
+            }
+        });
+    </script>
+</body>
+</html>

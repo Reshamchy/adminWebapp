@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Withdrawals - FireAuth</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" rel="stylesheet" integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" crossorigin="anonymous">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            min-height: 100vh;
+            display: flex;
+            overflow-x: auto;
+            position: relative;
+            font-size: 16px; /* Reduced from calc(0.8vw + 0.8rem) for smaller base font */
+        }
+
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: -2;
+        }
+
+        .bg-animation::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, 
+                transparent 0%, 
+                rgba(255, 255, 255, 0.1) 25%, 
+                transparent 50%, 
+                rgba(255, 255, 255, 0.1) 75%, 
+                transparent 100%);
+            animation: shimmer 20s infinite linear;
+        }
+
+        @keyframes shimmer {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .geometric-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .shape {
+            position: absolute;
+            opacity: 0.1;
+            animation: float-shapes 15s infinite ease-in-out;
+        }
+
+        .shape:nth-child(1) {
+            top: 10%;
+            left: 10%;
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            border-radius: 20px;
+            animation-delay: 0s;
+        }
+
+        .shape:nth-child(2) {
+            top: 20%;
+            right: 15%;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(45deg, #4ecdc4, #44a08d);
+            border-radius: 50%;
+            animation-delay: 2s;
+        }
+
+        .shape:nth-child(3) {
+            bottom: 20%;
+            left: 20%;
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(45deg, #a8e6cf, #88d8c0);
+            border-radius: 30px;
+            animation-delay: 4s;
+        }
+
+        .shape:nth-child(4) {
+            bottom: 30%;
+            right: 10%;
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(45deg, #ffd93d, #ff6b6b);
+            border-radius: 15px;
+            animation-delay: 6s;
+        }
+
+        @keyframes float-shapes {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+
+         .sidebar {
+            width: 250px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(30px);
+            border-right: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            max-height: 100vh;
+            overflow-y: auto;
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.15);
+            z-index: 10;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+        }
+
+         .sidebar::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+
+        .sidebar h2 {
+            color: white;
+            font-size: 1.2em; /* Reduced from 1.5em */
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .sidebar a {
+            display: block;
+            color: white;
+            text-decoration: none;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            font-size: 0.9em; /* Added to reduce sidebar link font size */
+        }
+
+        .sidebar a:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateX(5px);
+        }
+
+        .sidebar a.active {
+            background: rgba(255, 71, 87, 0.3);
+        }
+
+        .main-content {
+            margin-left: 270px;
+            padding: 2vw 3vw;
+            width: calc(100% - 270px);
+            min-width: 700px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(30px);
+            border-radius: 25px;
+            padding: 3vw 4vw;
+            box-shadow: 
+                0 25px 45px rgba(0, 0, 0, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            animation: containerGlow 4s infinite alternate;
+            max-width: 90vw;
+            margin: 0 auto;
+        }
+
+        @keyframes containerGlow {
+            0% { box-shadow: 0 25px 45px rgba(0, 0, 0, 0.15), 0 0 30px rgba(102, 126, 234, 0.3); }
+            100% { box-shadow: 0 25px 45px rgba(0, 0, 0, 0.15), 0 0 50px rgba(118, 75, 162, 0.4); }
+        }
+
+        h3 {
+            color: #ff4757;
+            font-size: 1.5rem; /* Reduced from calc(1.2vw + 1.2rem) */
+            font-weight: 600;
+            margin-bottom: 2vw;
+            text-align: center;
+        }
+
+        .withdrawal-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: block;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+
+        .withdrawal-table th,
+        .withdrawal-table td {
+            padding: 1vw 1.5vw;
+            text-align: left;
+            color: white;
+            font-weight: 500;
+            min-width: 100px;
+            font-size: 0.9rem; /* Added to reduce table font size */
+        }
+
+        .withdrawal-table th {
+            background: rgba(255, 71, 87, 0.3);
+            font-weight: 600;
+        }
+
+        .withdrawal-table tr {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .withdrawal-table tr:nth-child(even) {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .withdrawal-table tr:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .withdrawal-table tr:last-child {
+            border-bottom: none;
+        }
+
+        .action-btn {
+            background: rgba(0, 0, 0, 0.3) !important;
+            border: 1px solid rgba(255, 255, 255, 0.5) !important;
+            color: white !important;
+            cursor: pointer;
+            font-size: 0.85rem; /* Reduced from 1em */
+            padding: 8px;
+            margin-right: 10px;
+            border-radius: 5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .action-btn:hover {
+            background: rgba(255, 255, 255, 0.2) !important;
+        }
+
+        .approve-btn {
+            color: #28a745 !important;
+        }
+
+        .reject-btn {
+            color: #dc3545 !important;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            font-size: 0.9rem; /* Added to reduce toast font size */
+        }
+
+        .toast.show {
+            opacity: 1;
+        }
+
+        /* Media Queries for Desktop */
+        @media screen and (min-width: 1024px) {
+            .main-content {
+                padding: 3vw 4vw;
+            }
+
+            .container {
+                padding: 4vw 5vw;
+                max-width: 85vw;
+            }
+
+            .withdrawal-table th,
+            .withdrawal-table td {
+                min-width: 120px;
+                padding: 1.2vw 1.8vw;
+                font-size: 0.95rem; /* Adjusted for larger screens */
+            }
+
+            h3 {
+                font-size: 1.6rem; /* Adjusted for larger screens */
+            }
+        }
+
+        @media screen and (min-width: 1440px) {
+            .container {
+                max-width: 80vw;
+            }
+
+            .withdrawal-table th,
+            .withdrawal-table td {
+                min-width: 140px;
+                padding: 1.5vw 2vw;
+                font-size: 1rem; /* Adjusted for larger screens */
+            }
+
+            .action-btn {
+                padding: 10px;
+                font-size: 0.9rem; /* Adjusted for larger screens */
+            }
+        }
+
+        @media screen and (min-width: 1920px) {
+            body {
+                font-size: 16px; /* Fixed to prevent scaling too large */
+            }
+
+            .container {
+                max-width: 75vw;
+            }
+
+            .withdrawal-table th,
+            .withdrawal-table td {
+                min-width: 160px;
+                font-size: 1.05rem; /* Adjusted for larger screens */
+            }
+
+            h3 {
+                font-size: 1.7rem; /* Adjusted for larger screens */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-animation"></div>
+    <div class="geometric-bg">
+        <div class="shape"></div>
+        <div class="shape"></div>
+        <div class="shape"></div>
+        <div class="shape"></div>
+    </div>
+
+    <div class="sidebar">
+        <h2>Admin Panel</h2>
+       <a href="adminstatictis.html">Dashboard</a>
+        <a href="user_rank.html">User Rankings</a>
+        <a href="config_coins.html">Configure Coins</a>
+        <a href="send_email.html">Send Email</a>
+        <a href="generate_bonus.html">Generate Bonus</a>
+        <a href="search.html">Search Users</a>
+        <a href="manage_withdrawal.html">Manage Withdrawals</a>
+        <a href="manage_users.html">Manage Users</a>
+        <a href="manage_coins.html">Manage Coins</a>
+        <a href="manage_staff_applications.html">Manage Staff Applications</a>
+        <a href="manage_suggestions.html">Manage Suggestions</a>
+         <a href="usdmanage.html">Manage Withdrawals Usd</a>
+        <a href="facebook&insta.html">Social Ads Settings</a>
+        <a href="yotube.html">YouTube Settings</a>
+        <a href="tiktok.html" class="active">TikTok Settings</a>
+        <a href="game.html" class="active">Manage Game</a>
+        <a href="movie.html" class="active">Manage Movie</a>
+        <a href="admin_diamond.html" class="active">Manage Diamonds</a>
+        <a href="admin_free_net.html" class="active">Manage Data Pack</a>
+        <a href="admin_subscription_approve.html" class="active">Manage Subscriptions</a>
+        <a href="change_password.html" class="active">Manage Password</a>
+        <a href="config_coins.html" class="active">Manage Config Coins</a>
+        <a href="deposit.html" class="active">Manage Deposit</a>
+        <a href="earn.html" class="active">Manage Earn</a>
+        <a href="generate_bonus.html" class="active">Manage Bonus Voucher</a>
+        <a href="manage_suggestions.html" class="active">Manage Suggestions Box</a>
+        <a href="minitask.html" class="active">Manage Mini Task</a>
+    </div>
+
+    <div class="main-content">
+        <div class="container">
+            <h3>Manage Withdrawals</h3>
+            <table class="withdrawal-table">
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>eSewa ID</th>
+                        <th>Points</th>
+                        <th>Cash Amount</th>
+                        <th>Final Amount</th>
+                        <th>Timestamp</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="withdrawalBody"></tbody>
+            </table>
+            <div class="toast" id="toast"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { getFirestore, collection, query, where, onSnapshot, doc, getDoc, setDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyD14wwgcUIyiPl_qXvx7CtQTO2DEy465II",
+            authDomain: "my-video-earn-app12.firebaseapp.com",
+            databaseURL: "https://my-video-earn-app12-default-rtdb.firebaseio.com",
+            projectId: "my-video-earn-app12",
+            storageBucket: "my-video-earn-app12.firebasestorage.app",
+            messagingSenderId: "967539655660",
+            appId: "1:967539655660:web:95e773e701d35a252936c9",
+            measurementId: "G-DPWBZT3RN5"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        onAuthStateChanged(auth, (user) => {
+            if (!user || user.email !== 'reshamchaudhary922@gmail.com') {
+                window.location.href = 'index.html';
+            }
+        });
+
+        const withdrawalBody = document.getElementById('withdrawalBody');
+        const toast = document.getElementById('toast');
+
+        // Show toast notification
+        function showToast(message) {
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Fetch pending withdrawal requests
+        function fetchRequests() {
+            console.log('Fetching pending withdrawal requests...');
+            const q = query(collection(db, 'withdrawals'), where('status', '==', 'pending'));
+            onSnapshot(q, (snapshot) => {
+                console.log('Snapshot received, docs count:', snapshot.docs.length);
+                const requests = [];
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    console.log('Processing doc:', doc.id, data);
+                    requests.push({
+                        id: doc.id,
+                        username: data.username || '',
+                        email: data.email || '',
+                        phone: data.phone || '',
+                        esewaId: data.esewaId || '',
+                        withdrawalPoints: data.withdrawalPoints || 0,
+                        cashAmount: data.cashAmount || 0,
+                        finalAmount: data.finalAmount || 0,
+                        timestamp: data.timestamp?.toDate()?.toLocaleString() || new Date().toLocaleString(),
+                        userId: data.userId || '',
+                        gender: data.gender || ''
+                    });
+                });
+
+                console.log('Requests array:', requests);
+                if (requests.length === 0) {
+                    withdrawalBody.innerHTML = '<tr><td colspan="9">No pending withdrawals</td></tr>';
+                    return;
+                }
+
+                withdrawalBody.innerHTML = '';
+                requests.forEach(request => {
+                    console.log('Creating row for request:', request.id);
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${request.username}</td>
+                        <td>${request.email}</td>
+                        <td>${request.phone}</td>
+                        <td>${request.esewaId}</td>
+                        <td>${request.withdrawalPoints}</td>
+                        <td>${request.cashAmount}</td>
+                        <td>${request.finalAmount}</td>
+                        <td>${request.timestamp}</td>
+                        <td>
+                            <button class="action-btn approve-btn" data-id="${request.id}" title="Approve" style="background: rgba(0, 0, 0, 0.3); border: 1px solid white; color: #28a745;">
+                                <i class="fas fa-check"></i> Approve
+                            </button>
+                            <button class="action-btn reject-btn" data-id="${request.id}" title="Reject" style="background: rgba(0, 0, 0, 0.3); border: 1px solid white; color: #dc3545;">
+                                <i class="fas fa-times"></i> Reject
+                            </button>
+                        </td>
+                    `;
+                    withdrawalBody.appendChild(row);
+                });
+
+                console.log('Adding event listeners for buttons...');
+                document.querySelectorAll('.approve-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const id = btn.dataset.id;
+                        console.log('Approve button clicked for ID:', id);
+                        updateRequestStatus(id, 'approved');
+                    });
+                });
+
+                document.querySelectorAll('.reject-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const id = btn.dataset.id;
+                        console.log('Reject button clicked for ID:', id);
+                        const reason = prompt('Enter rejection reason:');
+                        if (reason && reason.trim()) {
+                            updateRequestStatus(id, 'rejected', reason.trim());
+                        } else if (reason !== null) {
+                            showToast('Rejection reason cannot be empty!');
+                        }
+                    });
+                });
+            }, (error) => {
+                console.error('Error fetching withdrawals:', error);
+                withdrawalBody.innerHTML = '<tr><td colspan="9">Failed to load withdrawals</td></tr>';
+                showToast('Error loading withdrawals');
+            });
+        }
+
+        // Update request status
+        async function updateRequestStatus(id, status, reason = '') {
+            try {
+                console.log(`Updating request ${id} to status: ${status}, reason: ${reason}`);
+                const requestDocRef = doc(db, 'withdrawals', id);
+                const requestDoc = await getDoc(requestDocRef);
+                if (!requestDoc.exists()) {
+                    showToast('Request not found');
+                    console.warn('Request not found:', id);
+                    return;
+                }
+
+                const data = requestDoc.data();
+                const requestData = {
+                    username: data.username || '',
+                    email: data.email || '',
+                    phone: data.phone || '',
+                    userId: data.userId || '',
+                    gender: data.gender || '',
+                    esewaId: data.esewaId || '',
+                    withdrawalPoints: data.withdrawalPoints || 0,
+                    cashAmount: data.cashAmount || 0,
+                    finalAmount: data.finalAmount || 0,
+                    status: status,
+                    timestamp: data.timestamp || { seconds: Math.floor(Date.now() / 1000) },
+                    reason: reason
+                };
+
+                console.log('Saving to history:', requestData);
+                await setDoc(doc(collection(db, 'history')), requestData);
+
+                console.log('Deleting from withdrawals:', id);
+                await deleteDoc(requestDocRef);
+
+                showToast(`Request ${status}`);
+                console.log(`Request ${id} ${status} successfully`);
+
+                sendEmailToUser(
+                    requestData.email || 'kingofrewards2004@gmail.com',
+                    status,
+                    reason,
+                    requestData.username,
+                    requestData.withdrawalPoints,
+                    requestData.finalAmount,
+                    new Date(requestData.timestamp.seconds * 1000).toLocaleString(),
+                    requestData.phone,
+                    requestData.esewaId,
+                    requestData.userId
+                );
+            } catch (error) {
+                console.error('Error updating request:', error);
+                showToast(`Error: ${error.message}`);
+            }
+        }
+
+        // Send email notification
+        function sendEmailToUser(email, status, reason, username, coins, finalAmount, timestamp, phone, esewaId, userId) {
+            console.log('Sending email to:', email);
+            const subject = status === 'approved' 
+                ? '🎉 Your Withdrawal Request Has Been Approved 🎉'
+                : status === 'rejected' 
+                ? '🚫 Your Withdrawal Request Has Been Rejected 🚫'
+                : '🔔 Withdrawal Request Update 🔔';
+
+            const body = `
+Hello ${username} 👋,
+
+Your withdrawal request has been ${status}. 💸
+Details:
+🪙 Coins: ${coins}
+💵 Amount: Rs. ${finalAmount}
+📅 Date: ${timestamp}
+📱 Phone: ${phone}
+💳 eSewa ID: ${esewaId}
+🆔 User ID: ${userId}
+${status === 'rejected' ? `❌ Rejection Reason: ${reason}\n` : ''}
+
+Thank you for using King of Rewards! 👑
+We appreciate your participation and encourage you to keep earning more rewards. 💪
+Stay tuned for more exciting features and updates in the app. 📱🚀
+
+Best regards,
+The King of Rewards Team 🤴👑
+
+Keep earning, keep winning! 🏆🎉
+            `.trim();
+
+            const mailtoLink = `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+            console.log('Mailto link:', mailtoLink);
+            window.location.href = mailtoLink;
+        }
+
+        // Load withdrawals on page load
+        console.log('Initializing withdrawal page...');
+        fetchRequests();
+
+        // Fallback for Font Awesome failure
+        window.addEventListener('load', () => {
+            if (!document.querySelector('.fa-check')) {
+                console.warn('Font Awesome icons not loaded, applying fallback text');
+                document.querySelectorAll('.approve-btn').forEach(btn => {
+                    btn.textContent = 'Approve';
+                });
+                document.querySelectorAll('.reject-btn').forEach(btn => {
+                    btn.textContent = 'Reject';
+                });
+            }
+        });
+    </script>
+</body>
+</html>

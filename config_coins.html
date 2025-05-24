@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Coins - FireAuth</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            min-height: 100vh;
+            display: flex;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: -2;
+        }
+
+        .bg-animation::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, 
+                transparent 0%, 
+                rgba(255, 255, 255, 0.1) 25%, 
+                transparent 50%, 
+                rgba(255, 255, 255, 0.1) 75%, 
+                transparent 100%);
+            animation: shimmer 20s infinite linear;
+        }
+
+        @keyframes shimmer {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .geometric-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .shape {
+            position: absolute;
+            opacity: 0.1;
+            animation: float-shapes 15s infinite ease-in-out;
+        }
+
+        .shape:nth-child(1) {
+            top: 10%;
+            left: 10%;
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            border-radius: 20px;
+            animation-delay: 0s;
+        }
+
+        .shape:nth-child(2) {
+            top: 20%;
+            right: 15%;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(45deg, #4ecdc4, #44a08d);
+            border-radius: 50%;
+            animation-delay: 2s;
+        }
+
+        .shape:nth-child(3) {
+            bottom: 20%;
+            left: 20%;
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(45deg, #a8e6cf, #88d8c0);
+            border-radius: 30px;
+            animation-delay: 4s;
+        }
+
+        .shape:nth-child(4) {
+            bottom: 30%;
+            right: 10%;
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(45deg, #ffd93d, #ff6b6b);
+            border-radius: 15px;
+            animation-delay: 6s;
+        }
+
+        @keyframes float-shapes {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+
+       .sidebar {
+            width: 250px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(30px);
+            border-right: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            max-height: 100vh;
+            overflow-y: auto;
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.15);
+            z-index: 10;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+        }
+
+         .sidebar::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+
+        .sidebar h2 {
+            color: white;
+            font-size: 1.5em;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .sidebar a {
+            display: block;
+            color: white;
+            text-decoration: none;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .sidebar a:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateX(5px);
+        }
+
+        .sidebar a.active {
+            background: rgba(255, 71, 87, 0.3);
+        }
+
+        .main-content {
+            margin-left: 270px;
+            padding: 40px;
+            width: calc(100% - 270px);
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(30px);
+            border-radius: 25px;
+            padding: 50px 40px;
+            box-shadow: 
+                0 25px 45px rgba(0, 0, 0, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            animation: containerGlow 4s infinite alternate;
+        }
+
+        @keyframes containerGlow {
+            0% { box-shadow: 0 25px 45px rgba(0, 0, 0, 0.15), 0 0 30px rgba(102, 126, 234, 0.3); }
+            100% { box-shadow: 0 25px 45px rgba(0, 0, 0, 0.15), 0 0 50px rgba(118, 75, 162, 0.4); }
+        }
+
+        h3 {
+            color: #ff4757;
+            font-size: 1.8em;
+            font-weight: 600;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .search-form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .form-group label {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9em;
+        }
+
+        .form-group input {
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 1em;
+        }
+
+        .suggestions {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 10;
+            display: none;
+        }
+
+        .suggestion-item {
+            padding: 10px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .suggestion-item:hover {
+            background: rgba(255, 71, 87, 0.3);
+        }
+
+        .user-info {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            color: white;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+
+        .coin-form {
+            display: none;
+            flex-direction: column;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .submit-btn {
+            background: linear-gradient(45deg, #ff4757, #ff3742, #ff4757);
+            background-size: 200% 200%;
+            animation: gradientShift 3s infinite;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex: 1;
+        }
+
+        .submit-btn:hover {
+            box-shadow: 0 15px 35px rgba(255, 71, 87, 0.4);
+            transform: translateY(-3px);
+        }
+
+        .submit-btn:disabled {
+            background: #666;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        .add-btn {
+            background: linear-gradient(45deg, #28a745, #218838, #28a745);
+        }
+
+        .deduct-btn {
+            background: linear-gradient(45deg, #dc3545, #c82333, #dc3545);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .toast.show {
+            opacity: 1;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-animation"></div>
+    <div class="geometric-bg">
+        <div class="shape"></div>
+        <div class="shape"></div>
+        <div class="shape"></div>
+        <div class="shape"></div>
+    </div>
+
+    <div class="sidebar">
+        <h2>Admin Panel</h2>
+       <a href="adminstatictis.html">Dashboard</a>
+        <a href="user_rank.html">User Rankings</a>
+        <a href="config_coins.html">Configure Coins</a>
+        <a href="send_email.html">Send Email</a>
+        <a href="generate_bonus.html">Generate Bonus</a>
+        <a href="search.html">Search Users</a>
+        <a href="manage_withdrawal.html">Manage Withdrawals</a>
+        <a href="manage_users.html">Manage Users</a>
+        <a href="manage_coins.html">Manage Coins</a>
+        <a href="manage_staff_applications.html">Manage Staff Applications</a>
+        <a href="manage_suggestions.html">Manage Suggestions</a>
+         <a href="usdmanage.html">Manage Withdrawals Usd</a>
+        <a href="facebook&insta.html">Social Ads Settings</a>
+        <a href="yotube.html">YouTube Settings</a>
+        <a href="tiktok.html" class="active">TikTok Settings</a>
+        <a href="game.html" class="active">Manage Game</a>
+        <a href="movie.html" class="active">Manage Movie</a>
+        <a href="admin_diamond.html" class="active">Manage Diamonds</a>
+        <a href="admin_free_net.html" class="active">Manage Data Pack</a>
+        <a href="admin_subscription_approve.html" class="active">Manage Subscriptions</a>
+        <a href="change_password.html" class="active">Manage Password</a>
+        <a href="config_coins.html" class="active">Manage Config Coins</a>
+        <a href="deposit.html" class="active">Manage Deposit</a>
+        <a href="earn.html" class="active">Manage Earn</a>
+        <a href="generate_bonus.html" class="active">Manage Bonus Voucher</a>
+        <a href="manage_suggestions.html" class="active">Manage Suggestions Box</a>
+        <a href="minitask.html" class="active">Manage Mini Task</a>
+    </div>
+
+    <div class="main-content">
+        <div class="container">
+            <h3>Manage Coins</h3>
+            <div class="search-form">
+                <div class="form-group">
+                    <label for="searchInput">Search by User ID, Username, Email, or Phone</label>
+                    <input type="text" id="searchInput" placeholder="Enter search term">
+                    <div class="suggestions" id="suggestions"></div>
+                </div>
+                <button class="submit-btn" id="searchBtn">Search</button>
+            </div>
+            <div class="user-info" id="userInfo"></div>
+            <div class="coin-form" id="coinForm">
+                <div class="form-group">
+                    <label for="coinInput">Enter Points Amount</label>
+                    <input type="number" id="coinInput" placeholder="Enter points" min="1">
+                </div>
+                <div class="button-group">
+                    <button class="submit-btn add-btn" id="addCoinsBtn">Add Points</button>
+                    <button class="submit-btn deduct-btn" id="deductCoinsBtn">Deduct Points</button>
+                </div>
+            </div>
+            <div class="toast" id="toast"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { getDatabase, ref, onValue, set } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyD14wwgcUIyiPl_qXvx7CtQTO2DEy465II",
+            authDomain: "my-video-earn-app12.firebaseapp.com",
+            databaseURL: "https://my-video-earn-app12-default-rtdb.firebaseio.com",
+            projectId: "my-video-earn-app12",
+            storageBucket: "my-video-earn-app12.firebasestorage.app",
+            messagingSenderId: "967539655660",
+            appId: "1:967539655660:web:95e773e701d35a252936c9",
+            measurementId: "G-DPWBZT3RN5"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+
+        onAuthStateChanged(auth, (user) => {
+            if (!user || user.email !== 'reshamchaudhary922@gmail.com') {
+                window.location.href = 'index.html';
+            }
+        });
+
+        const searchInput = document.getElementById('searchInput');
+        const searchBtn = document.getElementById('searchBtn');
+        const suggestions = document.getElementById('suggestions');
+        const userInfo = document.getElementById('userInfo');
+        const coinForm = document.getElementById('coinForm');
+        const coinInput = document.getElementById('coinInput');
+        const addCoinsBtn = document.getElementById('addCoinsBtn');
+        const deductCoinsBtn = document.getElementById('deductCoinsBtn');
+        const toast = document.getElementById('toast');
+
+        let currentUserId = null;
+        let users = [];
+
+        // Show toast notification
+        function showToast(message) {
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Load all users for suggestions
+        function loadUsers() {
+            const usersRef = ref(db, 'users');
+            onValue(usersRef, (snapshot) => {
+                users = [];
+                if (snapshot.exists()) {
+                    snapshot.forEach((childSnapshot) => {
+                        const userId = childSnapshot.key;
+                        const data = childSnapshot.val();
+                        users.push({
+                            userId,
+                            username: data.username || '',
+                            email: data.email || '',
+                            phone: data.phone || '',
+                            points: data.points || 0
+                        });
+                    });
+                }
+            }, (error) => {
+                console.error('Error loading users:', error);
+                showToast('Error loading users');
+            });
+        }
+
+        // Show suggestions based on input
+        searchInput.addEventListener('input', () => {
+            const query = searchInput.value.trim().toLowerCase();
+            suggestions.innerHTML = '';
+            suggestions.style.display = query ? 'block' : 'none';
+
+            if (!query) return;
+
+            const matches = users.filter(user => 
+                user.userId.toLowerCase().includes(query) ||
+                user.username.toLowerCase().includes(query) ||
+                user.email.toLowerCase().includes(query) ||
+                user.phone.toLowerCase().includes(query)
+            );
+
+            matches.forEach(user => {
+                const suggestionItem = document.createElement('div');
+                suggestionItem.className = 'suggestion-item';
+                suggestionItem.textContent = `${user.username || user.email || user.userId}`;
+                suggestionItem.addEventListener('click', () => {
+                    searchInput.value = user.userId;
+                    suggestions.style.display = 'none';
+                    searchUser(user.userId);
+                });
+                suggestions.appendChild(suggestionItem);
+            });
+        });
+
+        // Hide suggestions when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!searchInput.contains(e.target) && !suggestions.contains(e.target)) {
+                suggestions.style.display = 'none';
+            }
+        });
+
+        searchBtn.addEventListener('click', () => {
+            const queryText = searchInput.value.trim();
+            if (queryText) {
+                searchUser(queryText);
+            } else {
+                showToast('Enter something to search');
+                userInfo.textContent = 'Please enter a search term';
+            }
+        });
+
+        function searchUser(queryText) {
+            const usersRef = ref(db, 'users');
+            onValue(usersRef, (snapshot) => {
+                let found = false;
+                if (snapshot.exists()) {
+                    snapshot.forEach((userSnap) => {
+                        const userId = userSnap.key;
+                        const username = userSnap.val().username || '';
+                        const email = userSnap.val().email || '';
+                        const phone = userSnap.val().phone || '';
+                        const points = userSnap.val().points || 0;
+
+                        if (queryText.toLowerCase() === userId.toLowerCase() || 
+                            queryText.toLowerCase() === username.toLowerCase() || 
+                            queryText.toLowerCase() === email.toLowerCase() || 
+                            queryText.toLowerCase() === phone.toLowerCase()) {
+                            const result = `
+✅ User Found:
+🔹 ID: ${userId}
+🔹 Username: ${username}
+🔹 Email: ${email}
+🔹 Phone: ${phone}
+🔹 Points: ${points}
+                            `;
+                            userInfo.textContent = result;
+                            currentUserId = userId;
+                            coinForm.style.display = 'flex';
+                            found = true;
+                        }
+                    });
+                }
+
+                if (!found) {
+                    userInfo.textContent = '❌ User not found.';
+                    currentUserId = null;
+                    coinForm.style.display = 'none';
+                }
+            }, (error) => {
+                console.error('Error searching user:', error);
+                userInfo.textContent = '⚠️ Error searching user.';
+                coinForm.style.display = 'none';
+                showToast('Error searching user');
+            });
+        }
+
+        function updateUserPoints(userId, amount, isAdd) {
+            addCoinsBtn.disabled = true;
+            deductCoinsBtn.disabled = true;
+
+            const pointsRef = ref(db, `users/${userId}/points`);
+            onValue(pointsRef, (snapshot) => {
+                const currentPoints = snapshot.val() || 0;
+                if (!isAdd && currentPoints < amount) {
+                    showToast('Cannot deduct: Points would become negative');
+                    addCoinsBtn.disabled = false;
+                    deductCoinsBtn.disabled = false;
+                    return;
+                }
+
+                const updatedPoints = isAdd ? currentPoints + amount : currentPoints - amount;
+                set(pointsRef, updatedPoints).then(() => {
+                    const action = isAdd ? 'added to' : 'deducted from';
+                    showToast(`${amount} points ${action} ${userId}`);
+                    coinInput.value = '';
+                    searchInput.value = userId;
+                    searchUser(userId); // Refresh user info
+                    addCoinsBtn.disabled = false;
+                    deductCoinsBtn.disabled = false;
+                }).catch((error) => {
+                    console.error('Failed to update points:', error);
+                    showToast('Failed to update points');
+                    addCoinsBtn.disabled = false;
+                    deductCoinsBtn.disabled = false;
+                });
+            }, { onlyOnce: true }, (error) => {
+                console.error('Error accessing user data:', error);
+                showToast('Error accessing user data');
+                addCoinsBtn.disabled = false;
+                deductCoinsBtn.disabled = false;
+            });
+        }
+
+        addCoinsBtn.addEventListener('click', () => {
+            const coins = parseInt(coinInput.value);
+            if (currentUserId && !isNaN(coins) && coins > 0) {
+                updateUserPoints(currentUserId, coins, true);
+            } else {
+                showToast('Please enter a valid positive points amount');
+            }
+        });
+
+        deductCoinsBtn.addEventListener('click', () => {
+            const coins = parseInt(coinInput.value);
+            if (currentUserId && !isNaN(coins) && coins > 0) {
+                updateUserPoints(currentUserId, coins, false);
+            } else {
+                showToast('Please enter a valid positive points amount');
+            }
+        });
+
+        // Load users on page load
+        loadUsers();
+    </script>
+</body>
+</html>
