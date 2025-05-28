@@ -4,23 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Rankings - FireAuth</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" rel="stylesheet" integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" crossorigin="anonymous">
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         body {
             font-family: 'Inter', sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
             min-height: 100vh;
             display: flex;
-            overflow-x: hidden;
+            overflow-x: auto;
             position: relative;
+            font-size: 16px;
         }
 
         .bg-animation {
@@ -115,7 +111,7 @@
             50% { transform: translateY(-20px) rotate(180deg); }
         }
 
-    .sidebar {
+        .sidebar {
             width: 250px;
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(30px);
@@ -132,7 +128,7 @@
             scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
         }
 
-         .sidebar::-webkit-scrollbar {
+        .sidebar::-webkit-scrollbar {
             width: 8px;
         }
 
@@ -149,10 +145,9 @@
             background: rgba(255, 255, 255, 0.5);
         }
 
-
         .sidebar h2 {
             color: white;
-            font-size: 1.5em;
+            font-size: 1.2rem;
             margin-bottom: 30px;
             text-align: center;
         }
@@ -166,6 +161,7 @@
             border-radius: 10px;
             transition: all 0.3s ease;
             font-weight: 500;
+            font-size: 0.9rem;
         }
 
         .sidebar a:hover {
@@ -178,35 +174,30 @@
         }
 
         .main-content {
-            margin-left: 270px;
-            padding: 40px;
-            width: calc(100% - 270px);
+            margin-left: 250px;
+            padding: 2rem;
+            width: calc(100% - 250px);
+            min-width: 700px;
         }
 
         .container {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(30px);
             border-radius: 25px;
-            padding: 50px 40px;
+            padding: 2rem;
             box-shadow: 
                 0 25px 45px rgba(0, 0, 0, 0.15),
                 inset 0 1px 0 rgba(255, 255, 255, 0.3),
                 inset 0 -1px 0 rgba(0, 0, 0, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.2);
             animation: containerGlow 4s infinite alternate;
+            max-width: 90vw;
+            margin: 0 auto;
         }
 
         @keyframes containerGlow {
             0% { box-shadow: 0 25px 45px rgba(0, 0, 0, 0.15), 0 0 30px rgba(102, 126, 234, 0.3); }
             100% { box-shadow: 0 25px 45px rgba(0, 0, 0, 0.15), 0 0 50px rgba(118, 75, 162, 0.4); }
-        }
-
-        h3 {
-            color: #ff4757;
-            font-size: 1.8em;
-            font-weight: 600;
-            margin-bottom: 30px;
-            text-align: center;
         }
 
         .rank-table {
@@ -221,10 +212,11 @@
 
         .rank-table th,
         .rank-table td {
-            padding: 15px;
+            padding: 0.75rem;
             text-align: left;
             color: white;
             font-weight: 500;
+            white-space: nowrap;
         }
 
         .rank-table th {
@@ -244,6 +236,73 @@
         .rank-table tr:last-child {
             border-bottom: none;
         }
+
+        .table-container {
+            overflow-x: auto;
+            max-width: 100%;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .toast.show {
+            opacity: 1;
+        }
+
+        /* Media Queries */
+        @media screen and (max-width: 1280px) {
+            .sidebar {
+                width: 200px;
+            }
+
+            .main-content {
+                margin-left: 200px;
+                width: calc(100% - 200px);
+                min-width: 600px;
+            }
+
+            .container {
+                padding: 1.5rem;
+            }
+
+            .rank-table th,
+            .rank-table td {
+                padding: 0.5rem;
+                font-size: 0.9rem;
+            }
+        }
+
+        @media screen and (min-width: 1440px) {
+            .container {
+                max-width: 85vw;
+                padding: 3rem;
+            }
+        }
+
+        @media screen and (min-width: 1920px) {
+            .container {
+                max-width: 80vw;
+                padding: 3.5rem;
+            }
+
+            .rank-table th,
+            .rank-table td {
+                padding: 1rem;
+                font-size: 1.1rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -257,8 +316,8 @@
 
     <div class="sidebar">
         <h2>Admin Panel</h2>
-       <a href="adminstatictis.html">Dashboard</a>
-        <a href="user_rank.html">User Rankings</a>
+        <a href="adminstatictis.html">Dashboard</a>
+        <a href="user_rank.html" class="active">User Rankings</a>
         <a href="config_coins.html">Configure Coins</a>
         <a href="send_email.html">Send Email</a>
         <a href="generate_bonus.html">Generate Bonus</a>
@@ -268,45 +327,45 @@
         <a href="manage_coins.html">Manage Coins</a>
         <a href="manage_staff_applications.html">Manage Staff Applications</a>
         <a href="manage_suggestions.html">Manage Suggestions</a>
-         <a href="usdmanage.html">Manage Withdrawals Usd</a>
+        <a href="usdmanage.html">Manage Withdrawals USD</a>
         <a href="facebook&insta.html">Social Ads Settings</a>
         <a href="yotube.html">YouTube Settings</a>
-        <a href="tiktok.html" class="active">TikTok Settings</a>
-        <a href="game.html" class="active">Manage Game</a>
-        <a href="movie.html" class="active">Manage Movie</a>
-        <a href="admin_diamond.html" class="active">Manage Diamonds</a>
-        <a href="admin_free_net.html" class="active">Manage Data Pack</a>
-        <a href="admin_subscription_approve.html" class="active">Manage Subscriptions</a>
-        <a href="change_password.html" class="active">Manage Password</a>
-        <a href="config_coins.html" class="active">Manage Config Coins</a>
-        <a href="deposit.html" class="active">Manage Deposit</a>
-        <a href="earn.html" class="active">Manage Earn</a>
-        <a href="generate_bonus.html" class="active">Manage Bonus Voucher</a>
-        <a href="manage_suggestions.html" class="active">Manage Suggestions Box</a>
-        <a href="minitask.html" class="active">Manage Mini Task</a>
+        <a href="tiktok.html">TikTok Settings</a>
+        <a href="game.html">Manage Game</a>
+        <a href="movie.html">Manage Movie</a>
+        <a href="admin_diamond.html">Manage Diamonds</a>
+        <a href="admin_free_net.html">Manage Data Pack</a>
+        <a href="admin_subscription_approve.html">Manage Subscriptions</a>
+        <a href="change_password.html">Manage Password</a>
+        <a href="deposit.html">Manage Deposit</a>
+        <a href="earn.html">Manage Earn</a>
+        <a href="minitask.html">Manage Mini Task</a>
     </div>
 
     <div class="main-content">
         <div class="container">
-            <h3>User Rankings</h3>
-            <table class="rank-table" id="rankTable">
-                <thead>
-                    <tr>
-                        <th>Position</th>
-                        <th>Username</th>
-                        <th>Gender</th>
-                        <th>Phone</th>
-                        <th>Email</th>
-                        <th>Points</th>
-                        <th>Balance</th>
-                    </tr>
-                </thead>
-                <tbody id="rankBody">
-                    <tr>
-                        <td colspan="7">Loading...</td>
-                    </tr>
-                </tbody>
-            </table>
+            <h3 class="text-2xl font-semibold text-red-500 mb-6 text-center">User Rankings</h3>
+            <div class="table-container">
+                <table class="rank-table" id="rankTable">
+                    <thead>
+                        <tr>
+                            <th>Position</th>
+                            <th>Username</th>
+                            <th>Gender</th>
+                            <th>Phone</th>
+                            <th>Email</th>
+                            <th>Points</th>
+                            <th>Balance</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rankBody">
+                        <tr>
+                            <td colspan="7" class="text-center">Loading...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="toast" id="toast"></div>
         </div>
     </div>
 
@@ -330,12 +389,24 @@
         const auth = getAuth(app);
         const db = getDatabase(app);
 
+        // Show Toast Notification
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Auth Check
         onAuthStateChanged(auth, (user) => {
             if (!user || user.email !== 'reshamchaudhary922@gmail.com') {
                 window.location.href = 'index.html';
             }
         });
 
+        // Load Rankings
         function loadRankings() {
             const rankBody = document.getElementById('rankBody');
             const usersRef = ref(db, 'users');
@@ -343,7 +414,7 @@
             onValue(usersRef, (snapshot) => {
                 rankBody.innerHTML = '';
                 if (!snapshot.exists()) {
-                    rankBody.innerHTML = '<tr><td colspan="7">No users found</td></tr>';
+                    rankBody.innerHTML = '<tr><td colspan="7" class="text-center">No users found</td></tr>';
                     return;
                 }
 
@@ -366,26 +437,39 @@
                 users.sort((a, b) => b.points - a.points);
 
                 // Populate table
-                users.forEach((user, index) => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${index + 1}</td>
-                        <td>${user.username}</td>
-                        <td>${user.gender}</td>
-                        <td>${user.phone}</td>
-                        <td>${user.email}</td>
-                        <td>${user.points}</td>
-                        <td>${user.balance}</td>
-                    `;
-                    rankBody.appendChild(row);
-                });
+                if (users.length === 0) {
+                    rankBody.innerHTML = '<tr><td colspan="7" class="text-center">No users found</td></tr>';
+                } else {
+                    users.forEach((user, index) => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${index + 1}</td>
+                            <td>${user.username}</td>
+                            <td>${user.gender}</td>
+                            <td>${user.phone}</td>
+                            <td>${user.email}</td>
+                            <td>${user.points}</td>
+                            <td>${user.balance}</td>
+                        `;
+                        rankBody.appendChild(row);
+                    });
+                }
             }, (error) => {
                 console.error('Error loading rankings:', error);
-                rankBody.innerHTML = '<tr><td colspan="7">Error loading rankings</td></tr>';
+                rankBody.innerHTML = '<tr><td colspan="7" class="text-center">Error loading rankings</td></tr>';
+                showToast('Failed to load rankings');
             });
         }
 
+        // Initialize
         loadRankings();
+
+        // Fallback for Font Awesome failure
+        window.addEventListener('load', () => {
+            if (!document.querySelector('.fa-solid')) {
+                console.warn('Font Awesome icons not loaded');
+            }
+        });
     </script>
 </body>
 </html>
