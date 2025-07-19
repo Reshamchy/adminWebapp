@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Promotions - FireAuth</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" rel="stylesheet" integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" crossorigin="anonymous">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            min-height: 100vh;
+            display: flex;
+            overflow-x: auto;
+            position: relative;
+            font-size: 16px;
+        }
+
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: -2;
+        }
+
+        .bg-animation::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, 
+                transparent 0%, 
+                rgba(255, 255, 255, 0.1) 25%, 
+                transparent 50%, 
+                rgba(255, 255, 255, 0.1) 75%, 
+                transparent 100%);
+            animation: shimmer 20s infinite linear;
+        }
+
+        @keyframes shimmer {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .geometric-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .shape {
+            position: absolute;
+            opacity: 0.1;
+            animation: float-shapes 15s infinite ease-in-out;
+        }
+
+        .shape:nth-child(1) {
+            top: 10%;
+            left: 10%;
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            border-radius: 20px;
+            animation-delay: 0s;
+        }
+
+        .shape:nth-child(2) {
+            top: 20%;
+            right: 15%;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(45deg, #4ecdc4, #44a08d);
+            border-radius: 50%;
+            animation-delay: 2s;
+        }
+
+        .shape:nth-child(3) {
+            bottom: 20%;
+            left: 20%;
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(45deg, #a8e6cf, #88d8c0);
+            border-radius: 30px;
+            animation-delay: 4s;
+        }
+
+        .shape:nth-child(4) {
+            bottom: 30%;
+            right: 10%;
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(45deg, #ffd93d, #ff6b6b);
+            border-radius: 15px;
+            animation-delay: 6s;
+        }
+
+        @keyframes float-shapes {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+
+        .sidebar {
+            width: 250px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(30px);
+            border-right: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            max-height: 100vh;
+            overflow-y: auto;
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.15);
+            z-index: 10;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+        }
+
+        .sidebar::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .sidebar h2 {
+            color: white;
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .sidebar a {
+            display: block;
+            color: white;
+            text-decoration: none;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .sidebar a:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateX(5px);
+        }
+
+        .sidebar a.active {
+            background: rgba(255, 71, 87, 0.3);
+        }
+
+        .main-content {
+            margin-left: 270px;
+            padding: 2rem 3rem;
+            width: calc(100% - 270px);
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(30px);
+            border-radius: 25px;
+            padding: 2rem 3rem;
+            box-shadow: 
+                0 25px 45px rgba(0, 0, 0, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            animation: containerGlow 4s infinite alternate;
+            max-width: 90vw;
+            margin: 0 auto;
+        }
+
+        @keyframes containerGlow {
+            0% { box-shadow: 0 25px 45px rgba(0, 0, 0, 0.15), 0 0 30px rgba(102, 126, 234, 0.3); }
+            100% { box-shadow: 0 25px 45px rgba(0, 0, 0, 0.15), 0 0 50px rgba(118, 75, 162, 0.4); }
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .toast.show {
+            opacity: 1;
+        }
+
+        .status-text {
+            text-align: center;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .status-blue {
+            background: rgba(59, 130, 246, 0.2);
+            color: #3b82f6;
+        }
+
+        .status-green {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+        }
+
+        .status-red {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+
+        .promotion-url {
+            color: #3b82f6;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+
+        .promotion-url:hover {
+            color: #1d4ed8;
+        }
+
+        @media screen and (min-width: 1024px) {
+            .main-content {
+                padding: 3rem 4rem;
+            }
+
+            .container {
+                padding: 3rem 4rem;
+                max-width: 85vw;
+            }
+        }
+
+        @media screen and (min-width: 1440px) {
+            .container {
+                max-width: 80vw;
+            }
+        }
+
+        @media screen and (min-width: 1920px) {
+            .container {
+                max-width: 75vw;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-animation"></div>
+    <div class="geometric-bg">
+        <div class="shape"></div>
+        <div class="shape"></div>
+        <div class="shape"></div>
+        <div class="shape"></div>
+    </div>
+
+    <div class="sidebar">
+        <h2>Admin Panel</h2>
+        <a href="adminstatictis.html">Dashboard</a>
+        <a href="user_rank.html">User Rankings</a>
+        <a href="config_coins.html">Configure Coins</a>
+        <a href="send_email.html">Send Email</a>
+        <a href="generate_bonus.html">Generate Bonus</a>
+        <a href="search.html">Search Users</a>
+        <a href="manage_withdrawal.html">Manage Withdrawals</a>
+        <a href="manage_users.html">Manage Users</a>
+        <a href="manage_coins.html">Manage Coins</a>
+        <a href="manage_staff_applications.html">Manage Staff Applications</a>
+        <a href="manage_suggestions.html">Manage Suggestions</a>
+        <a href="usdmanage.html">Manage Withdrawals USD</a>
+        <a href="facebook&insta.html">Social Ads Settings</a>
+        <a href="yotube.html">YouTube Settings</a>
+        <a href="tiktok.html">TikTok Settings</a>
+        <a href="game.html">Manage Game</a>
+        <a href="movie.html">Manage Movie</a>
+        <a href="admin_diamond.html">Manage Diamonds</a>
+        <a href="admin_free_net.html">Manage Data Pack</a>
+        <a href="admin_subscription_approve.html">Manage Subscriptions</a>
+        <a href="change_password.html">Manage Password</a>
+        <a href="deposit.html">Manage Deposit</a>
+        <a href="earn.html">Manage Earn</a>
+        <a href="minitask.html">Manage Mini Task</a>
+        <a href="admin_control_earn_features.html">Control Earn Features</a>
+        <a href="admin_kyc_list.html">Manage KYC</a>
+        <a href="admin_promotion.html" class="active">Manage Promotions</a>
+    </div>
+
+    <div class="main-content">
+        <div class="container">
+            <h3 class="text-2xl font-semibold text-red-500 mb-6 text-center">Manage Promotions</h3>
+            <p id="statusText" class="status-text status-blue hidden">Loading pending promotions...</p>
+            <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                <div id="promotionList" class="grid grid-cols-1 gap-4"></div>
+            </div>
+            <div class="toast" id="toast"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js';
+        import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js';
+        import { getDatabase, ref, onValue, update, push, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyD14wwgcUIyiPl_qXvx7CtQTO2DEy465II",
+            authDomain: "my-video-earn-app12.firebaseapp.com",
+            databaseURL: "https://my-video-earn-app12-default-rtdb.firebaseio.com",
+            projectId: "my-video-earn-app12",
+            storageBucket: "my-video-earn-app12.firebasestorage.app",
+            messagingSenderId: "967539655660",
+            appId: "1:967539655660:web:95e773e701d35a252936c9",
+            measurementId: "G-DPWBZT3RN5"
+        };
+
+        // Initialize Firebase
+        let app;
+        try {
+            app = initializeApp(firebaseConfig);
+            console.log('Firebase initialized:', app);
+        } catch (error) {
+            console.error('Firebase initialization failed:', error);
+            showToast('Failed to initialize Firebase');
+        }
+
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+        const pendingPromotionsRef = ref(db, 'pending_promotions');
+
+        // UI Elements
+        const toast = document.getElementById('toast');
+        const statusText = document.getElementById('statusText');
+        const promotionList = document.getElementById('promotionList');
+
+        // Show Toast Notification
+        function showToast(message) {
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), Math.max(3000, message.length * 100));
+        }
+
+        // Show Status Message
+        function showStatus(message, type) {
+            statusText.textContent = message;
+            statusText.className = `status-text ${type === 'blue' ? 'status-blue' : type === 'green' ? 'status-green' : 'status-red'}`;
+            statusText.classList.remove('hidden');
+        }
+
+        // Hide Status Message
+        function hideStatus() {
+            statusText.classList.add('hidden');
+        }
+
+        // Format Date
+        function formatDate(timestamp) {
+            if (!timestamp) return 'N/A';
+            const date = new Date(timestamp);
+            return date.toLocaleString('en-US', { 
+                month: 'short', 
+                day: '2-digit', 
+                year: 'numeric', 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+        }
+
+        // Auth Check
+        onAuthStateChanged(auth, (user) => {
+            console.log('Auth state changed:', user);
+            if (!user || user.email !== 'reshamchaudhary922@gmail.com') {
+                console.log('Access denied: Invalid user or email');
+                showToast('Access denied');
+                window.location.href = 'index.html';
+            } else {
+                console.log('User authenticated, loading promotions');
+                loadPendingPromotions();
+            }
+        });
+
+        // Load Pending Promotions
+        function loadPendingPromotions() {
+            showStatus('Loading pending promotions...', 'blue');
+            onValue(pendingPromotionsRef, (snapshot) => {
+                const promotions = [];
+                snapshot.forEach((promotionSnap) => {
+                    const promotion = promotionSnap.val();
+                    if (promotion.status === 'pending') {
+                        promotion.id = promotionSnap.key;
+                        promotions.push(promotion);
+                    }
+                });
+
+                renderPromotions(promotions);
+                if (promotions.length === 0) {
+                    showStatus('No pending promotions found', 'green');
+                } else {
+                    hideStatus();
+                }
+            }, (error) => {
+                console.error('Error loading promotions:', error);
+                showStatus(`Error loading promotions: ${error.message}`, 'red');
+            });
+        }
+
+        // Render Promotions
+        function renderPromotions(promotions) {
+            promotionList.innerHTML = '';
+            promotions.forEach((promotion) => {
+                const basePoints = 20;
+                const bonusPoints = promotion.verified ? 100 : 0;
+                const totalPoints = basePoints + bonusPoints;
+                const card = document.createElement('div');
+                card.className = 'bg-gray-700 p-4 rounded-lg flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4';
+                card.innerHTML = `
+                    <div class="flex-1">
+                        <p class="text-white font-semibold">Platform: ${promotion.platform.toUpperCase() || 'N/A'}</p>
+                        <p class="text-white">URL: <a href="${promotion.url || '#'}" target="_blank" class="promotion-url">${promotion.url || 'N/A'}</a></p>
+                        <p class="text-white">Views: ${promotion.views || 0}</p>
+                        <p class="text-white">Likes: ${promotion.likes || 0}</p>
+                        <p class="text-white ${promotion.verified ? 'text-green-500' : 'text-red-500'}">
+                            ${promotion.verified ? '✅ Verified' : '❌ Not Verified'}
+                        </p>
+                        <p class="text-white">Submitted: ${formatDate(promotion.timestamp)}</p>
+                        <p class="text-white">Points: ${totalPoints}</p>
+                    </div>
+                    <div class="flex space-x-2">
+                        <button class="btn-approve bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition" data-id="${promotion.id}" data-userid="${promotion.userId}" data-platform="${promotion.platform}">
+                            <i class="fas fa-check mr-1"></i> Approve
+                        </button>
+                        <button class="btn-reject bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition" data-id="${promotion.id}" data-userid="${promotion.userId}" data-platform="${promotion.platform}">
+                            <i class="fas fa-times mr-1"></i> Reject
+                        </button>
+                        <button class="btn-view-url bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition" data-url="${promotion.url}">
+                            <i class="fas fa-eye mr-1"></i> View
+                        </button>
+                    </div>
+                `;
+                promotionList.appendChild(card);
+            });
+
+            // Add event listeners for buttons
+            document.querySelectorAll('.btn-approve').forEach(button => {
+                button.addEventListener('click', () => {
+                    const id = button.getAttribute('data-id');
+                    const userId = button.getAttribute('data-userid');
+                    const platform = button.getAttribute('data-platform');
+                    approvePromotion(id, userId, platform);
+                });
+            });
+
+            document.querySelectorAll('.btn-reject').forEach(button => {
+                button.addEventListener('click', () => {
+                    const id = button.getAttribute('data-id');
+                    const userId = button.getAttribute('data-userid');
+                    const platform = button.getAttribute('data-platform');
+                    rejectPromotion(id, userId, platform);
+                });
+            });
+
+            document.querySelectorAll('.btn-view-url').forEach(button => {
+                button.addEventListener('click', () => {
+                    const url = button.getAttribute('data-url');
+                    if (url) window.open(url, '_blank');
+                });
+            });
+        }
+
+        // Approve Promotion
+        async function approvePromotion(id, userId, platform) {
+            const basePoints = 20;
+            const promotion = promotions.find(p => p.id === id);
+            const bonusPoints = promotion && promotion.verified ? 100 : 0;
+            const totalPoints = basePoints + bonusPoints;
+
+            const updates = {
+                [`pending_promotions/${id}/status`]: 'approved',
+                [`users/${userId}/promotions/${platform}/${id}/status`]: 'approved',
+                [`users/${userId}/points`]: increment(totalPoints)
+            };
+
+            try {
+                await update(ref(db), updates);
+                await sendNotification(userId, 'Promotion Approved', `Your ${platform} promotion has been approved! You earned ${totalPoints} points.`);
+                showToast(`Promotion approved! User earned ${totalPoints} points`);
+                loadPendingPromotions();
+            } catch (error) {
+                console.error('Error approving promotion:', error);
+                showToast(`Error approving promotion: ${error.message}`);
+            }
+        }
+
+        // Reject Promotion
+        async function rejectPromotion(id, userId, platform) {
+            const updates = {
+                [`pending_promotions/${id}/status`]: 'rejected',
+                [`users/${userId}/promotions/${platform}/${id}/status`]: 'rejected'
+            };
+
+            try {
+                await update(ref(db), updates);
+                await sendNotification(userId, 'Promotion Rejected', `Your ${platform} promotion has been rejected. Please ensure your post meets the requirements.`);
+                showToast('Promotion rejected');
+                loadPendingPromotions();
+            } catch (error) {
+                console.error('Error rejecting promotion:', error);
+                showToast(`Error rejecting promotion: ${error.message}`);
+            }
+        }
+
+        // Send Notification
+        async function sendNotification(userId, title, message) {
+            const notificationData = {
+                title,
+                message,
+                timestamp: serverTimestamp(),
+                read: false
+            };
+
+            try {
+                await push(ref(db, `users/${userId}/notifications`), notificationData);
+            } catch (error) {
+                console.error('Error sending notification:', error);
+            }
+        }
+
+        // Increment function for points (Firebase helper)
+        function increment(value) {
+            return { '.sv': { increment: value } };
+        }
+
+        // Fallback for Font Awesome failure
+        window.addEventListener('load', () => {
+            if (!document.querySelector('.fa-check')) {
+                console.warn('Font Awesome icons not loaded');
+            }
+        });
+    </script>
+</body>
+</html>
