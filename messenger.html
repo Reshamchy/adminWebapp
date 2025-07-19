@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Messenger - FireAuth</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            min-height: 100vh;
+            display: flex;
+            overflow-x: auto;
+            position: relative;
+            font-size: 16px;
+        }
+
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: -2;
+        }
+
+        .bg-animation::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, 
+                transparent 0%, 
+                rgba(255, 255, 255, 0.1) 25%, 
+                transparent 50%, 
+                rgba(255, 255, 255, 0.1) 75%, 
+                transparent 100%);
+            animation: shimmer 20s infinite linear;
+        }
+
+        @keyframes shimmer {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .geometric-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .shape {
+            position: absolute;
+            opacity: 0.1;
+            animation: float-shapes 15s infinite ease-in-out;
+        }
+
+        .shape:nth-child(1) {
+            top: 10%;
+            left: 10%;
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            border-radius: 20px;
+            animation-delay: 0s;
+        }
+
+        .shape:nth-child(2) {
+            top: 20%;
+            right: 15%;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(45deg, #4ecdc4, #44a08d);
+            border-radius: 50%;
+            animation-delay: 2s;
+        }
+
+        .shape:nth-child(3) {
+            bottom: 20%;
+            left: 20%;
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(45deg, #a8e6cf, #88d8c0);
+            border-radius: 30px;
+            animation-delay: 4s;
+        }
+
+        .shape:nth-child(4) {
+            bottom: 30%;
+            right: 10%;
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(45deg, #ffd93d, #ff6b6b);
+            border-radius: 15px;
+            animation-delay: 6s;
+        }
+
+        @keyframes float-shapes {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+
+        .sidebar {
+            width: 250px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(30px);
+            border-right: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            max-height: 100vh;
+            overflow-y: auto;
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.15);
+            z-index: 10;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+        }
+
+        .sidebar::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .sidebar h2 {
+            color: white;
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .sidebar a {
+            display: block;
+            color: white;
+            text-decoration: none;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .sidebar a:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateX(5px);
+        }
+
+        .sidebar a.active {
+            background: rgba(255, 71, 87, 0.3);
+        }
+
+        .main-content {
+            margin-left: 270px;
+            padding: 2rem 3rem;
+            width: calc(100% - 270px);
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(30px);
+            border-radius: 25px;
+            padding: 2rem 3rem;
+            box-shadow: 
+                0 25px 45px rgba(0, 0, 0, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            animation: containerGlow 4s infinite alternate;
+            max-width: 90vw;
+            margin: 0 auto;
+        }
+
+        @keyframes containerGlow {
+            0% { box-shadow: 0 25px 45px rgba(0, 0, 0, 0.15), 0 0 30px rgba(102, 126, 234, 0.3); }
+            100% { box-shadow: 0 25px 45px rgba(0, 0, 0, 0.15), 0 0 50px rgba(118, 75, 162, 0.4); }
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .toast.show {
+            opacity: 1;
+        }
+
+        /* Messenger specific styles */
+        .search-box {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            padding: 12px 15px;
+            width: 100%;
+            color: white;
+            margin-bottom: 20px;
+        }
+
+        .search-box::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .section-header {
+            color: white;
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .conversation-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+        }
+
+        .conversation-card:hover {
+            transform: translateY(-3px);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .user-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 15px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .online-badge {
+            width: 12px;
+            height: 12px;
+            background-color: #4CAF50;
+            border-radius: 50%;
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .user-info {
+            flex: 1;
+        }
+
+        .user-name {
+            color: white;
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+
+        .last-message {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .time-stamp {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.8rem;
+            text-align: right;
+        }
+
+        .horizontal-scroll {
+            display: flex;
+            overflow-x: auto;
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+        }
+
+        .horizontal-scroll::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        .horizontal-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .horizontal-scroll::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 3px;
+        }
+
+        .horizontal-scroll::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .story-item, .online-user {
+            flex: 0 0 auto;
+            margin-right: 15px;
+            text-align: center;
+        }
+
+        .story-avatar, .online-avatar {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            position: relative;
+        }
+
+        .story-avatar::after {
+            content: '';
+            position: absolute;
+            top: -4px;
+            left: -4px;
+            right: -4px;
+            bottom: -4px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24, #ffd93d);
+            z-index: -1;
+        }
+
+        .user-name-small {
+            color: white;
+            font-size: 0.8rem;
+            margin-top: 5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 70px;
+        }
+
+        .fab-add-story {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            z-index: 100;
+            border: none;
+            outline: none;
+        }
+
+        .logout-btn {
+            background: rgba(255, 71, 87, 0.3);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 20px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 71, 87, 0.5);
+        }
+
+        /* Media Queries */
+        @media screen and (min-width: 1024px) {
+            .main-content {
+                padding: 3rem 4rem;
+            }
+
+            .container {
+                padding: 3rem 4rem;
+                max-width: 85vw;
+            }
+        }
+
+        @media screen and (min-width: 1440px) {
+            .container {
+                max-width: 80vw;
+            }
+        }
+
+        @media screen and (min-width: 1920px) {
+            .container {
+                max-width: 75vw;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-animation"></div>
+    <div class="geometric-bg">
+        <div class="shape"></div>
+        <div class="shape"></div>
+        <div class="shape"></div>
+        <div class="shape"></div>
+    </div>
+
+    <div class="sidebar">
+        <h2>Admin Panel</h2>
+        <a href="adminstatictis.html">Dashboard</a>
+        <a href="user_rank.html">User Rankings</a>
+        <a href="config_coins.html">Configure Coins</a>
+        <a href="send_email.html">Send Email</a>
+        <a href="generate_bonus.html">Generate Bonus</a>
+        <a href="search.html">Search Users</a>
+        <a href="manage_withdrawal.html">Manage Withdrawals</a>
+        <a href="manage_users.html">Manage Users</a>
+        <a href="manage_coins.html">Manage Coins</a>
+        <a href="manage_staff_applications.html">Manage Staff Applications</a>
+        <a href="manage_suggestions.html">Manage Suggestions</a>
+        <a href="usdmanage.html">Manage Withdrawals USD</a>
+        <a href="facebook&insta.html">Social Ads Settings</a>
+        <a href="yotube.html">YouTube Settings</a>
+        <a href="tiktok.html">TikTok Settings</a>
+        <a href="game.html">Manage Game</a>
+        <a href="movie.html">Manage Movie</a>
+        <a href="admin_diamond.html">Manage Diamonds</a>
+        <a href="admin_free_net.html">Manage Data Pack</a>
+        <a href="admin_subscription_approve.html">Manage Subscriptions</a>
+        <a href="change_password.html">Manage Password</a>
+        <a href="deposit.html">Manage Deposit</a>
+        <a href="earn.html">Manage Earn</a>
+        <a href="minitask.html">Manage Mini Task</a>
+        <a href="admin_control_earn_features.html">Control Earn Features</a>
+        <a href="UserStatus.html">User Status</a>
+        <a href="messenger.html" class="active">Messenger</a>
+    </div>
+
+    <div class="main-content">
+        <div class="container">
+            <h3 class="text-2xl font-semibold text-red-500 mb-6 text-center">Messenger</h3>
+            
+            <input type="text" class="search-box" placeholder="Search conversations..." id="searchInput">
+            
+            <div id="storiesSection">
+                <h4 class="section-header">Stories</h4>
+                <div class="horizontal-scroll" id="storiesContainer">
+                    <!-- Stories will be loaded here -->
+                </div>
+            </div>
+            
+            <div id="onlineUsersSection">
+                <h4 class="section-header">Online Users</h4>
+                <div class="horizontal-scroll" id="onlineUsersContainer">
+                    <!-- Online users will be loaded here -->
+                </div>
+            </div>
+            
+            <h4 class="section-header">Conversations</h4>
+            <div id="conversationsContainer">
+                <!-- Conversations will be loaded here -->
+            </div>
+            
+            <button class="logout-btn" id="logoutBtn">Logout</button>
+            <button class="fab-add-story" id="addStoryBtn">+</button>
+            
+            <div class="toast" id="toast"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { getDatabase, ref, onValue, set, get } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyD14wwgcUIyiPl_qXvx7CtQTO2DEy465II",
+            authDomain: "my-video-earn-app12.firebaseapp.com",
+            databaseURL: "https://my-video-earn-app12-default-rtdb.firebaseio.com",
+            projectId: "my-video-earn-app12",
+            storageBucket: "my-video-earn-app12.firebasestorage.app",
+            messagingSenderId: "967539655660",
+            appId: "1:967539655660:web:95e773e701d35a252936c9",
+            measurementId: "G-DPWBZT3RN5"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+        
+        // DOM Elements
+        const searchInput = document.getElementById('searchInput');
+        const storiesContainer = document.getElementById('storiesContainer');
+        const onlineUsersContainer = document.getElementById('onlineUsersContainer');
+        const conversationsContainer = document.getElementById('conversationsContainer');
+        const storiesSection = document.getElementById('storiesSection');
+        const onlineUsersSection = document.getElementById('onlineUsersSection');
+        const addStoryBtn = document.getElementById('addStoryBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const toast = document.getElementById('toast');
+
+        // State
+        let currentUserId = null;
+        const usersMap = new Map();
+        let conversations = [];
+        let filteredConversations = [];
+
+        // Show Toast Notification
+        function showToast(message) {
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), Math.max(3000, message.length * 100));
+        }
+
+        // Format timestamp to relative time
+        function formatTime(timestamp) {
+            if (!timestamp) return '';
+            const now = Date.now();
+            const diff = now - timestamp;
+            const minute = 60 * 1000;
+            const hour = 60 * minute;
+            const day = 24 * hour;
+            
+            if (diff < minute) return 'just now';
+            if (diff < hour) return `${Math.floor(diff / minute)}m ago`;
+            if (diff < day) return `${Math.floor(diff / hour)}h ago`;
+            return `${Math.floor(diff / day)}d ago`;
+        }
+
+        // Update user status in Firebase
+        function updateUserStatus(status) {
+            if (!currentUserId) return;
+            set(ref(db, `users/${currentUserId}/appstatus/status`), status)
+                .catch(error => {
+                    console.error("Error updating status:", error);
+                    showToast("Failed to update status");
+                });
+        }
+
+        // Load users from Firebase
+        function loadUsers() {
+            const usersRef = ref(db, 'users');
+            onValue(usersRef, (snapshot) => {
+                usersMap.clear();
+                const users = [];
+                
+                snapshot.forEach(userSnapshot => {
+                    const userId = userSnapshot.key;
+                    if (userId === currentUserId) return;
+                    
+                    const user = {
+                        id: userId,
+                        username: userSnapshot.child('username').val() || 'Unknown',
+                        profileImage: userSnapshot.child('kyc/selfieUrl').val() || '',
+                        status: userSnapshot.child('appstatus/status').val() || 'offline'
+                    };
+                    
+                    usersMap.set(userId, user);
+                    if (user.status === 'online') {
+                        users.push(user);
+                    }
+                });
+                
+                renderOnlineUsers(users);
+            });
+        }
+
+        // Load conversations from Firebase
+        function loadConversations() {
+            const convRef = ref(db, 'conversations');
+            onValue(convRef, (snapshot) => {
+                conversations = [];
+                
+                snapshot.forEach(convSnapshot => {
+                    const conv = convSnapshot.val();
+                    if (!conv.participants || !conv.participants.includes(currentUserId)) return;
+                    
+                    const otherUserId = conv.participants.find(id => id !== currentUserId);
+                    if (!otherUserId) return;
+                    
+                    const otherUser = usersMap.get(otherUserId) || {
+                        id: otherUserId,
+                        username: 'Unknown',
+                        profileImage: '',
+                        status: 'offline'
+                    };
+                    
+                    conversations.push({
+                        id: conv.conversationId || convSnapshot.key,
+                        otherUserId: otherUserId,
+                        otherUsername: otherUser.username,
+                        otherUserImage: otherUser.profileImage,
+                        lastMessage: conv.lastMessage || '',
+                        lastMessageTime: conv.lastMessageTime || 0,
+                        isOnline: otherUser.status === 'online'
+                    });
+                });
+                
+                // Sort conversations by last message time
+                conversations.sort((a, b) => b.lastMessageTime - a.lastMessageTime);
+                filterConversations(searchInput.value);
+            });
+        }
+
+        // Load stories from Firebase
+        function loadStories() {
+            const storiesRef = ref(db, 'stories');
+            onValue(storiesRef, (snapshot) => {
+                const now = Date.now();
+                const stories = [];
+                
+                snapshot.forEach(storySnapshot => {
+                    const story = storySnapshot.val();
+                    // Only show stories from last 24 hours
+                    if (now - story.timestamp < 24 * 60 * 60 * 1000) {
+                        stories.push({
+                            id: storySnapshot.key,
+                            userId: story.userId,
+                            username: story.username || 'Unknown',
+                            profileImage: story.profileImage || '',
+                            imageUrl: story.imageUrl || '',
+                            text: story.text || '',
+                            timestamp: story.timestamp
+                        });
+                    }
+                });
+                
+                renderStories(stories);
+            });
+        }
+
+        // Filter conversations based on search input
+        function filterConversations(query) {
+            query = query.toLowerCase();
+            filteredConversations = query 
+                ? conversations.filter(conv => 
+                    conv.otherUsername.toLowerCase().includes(query) || 
+                    conv.lastMessage.toLowerCase().includes(query))
+                : [...conversations];
+                
+            renderConversations();
+        }
+
+        // Render online users
+        function renderOnlineUsers(users) {
+            onlineUsersContainer.innerHTML = '';
+            
+            if (users.length === 0) {
+                onlineUsersSection.style.display = 'none';
+                return;
+            }
+            
+            onlineUsersSection.style.display = 'block';
+            
+            users.forEach(user => {
+                const userElement = document.createElement('div');
+                userElement.className = 'online-user';
+                userElement.innerHTML = `
+                    <div style="position: relative;">
+                        <img src="${user.profileImage || 'https://via.placeholder.com/70'}" alt="${user.username}" class="online-avatar">
+                        <span class="online-badge"></span>
+                    </div>
+                    <div class="user-name-small">${user.username}</div>
+                `;
+                userElement.addEventListener('click', () => openChat(user.id, user.username, user.profileImage));
+                onlineUsersContainer.appendChild(userElement);
+            });
+        }
+
+        // Render stories
+        function renderStories(stories) {
+            storiesContainer.innerHTML = '';
+            
+            if (stories.length === 0) {
+                storiesSection.style.display = 'none';
+                return;
+            }
+            
+            storiesSection.style.display = 'block';
+            
+            stories.forEach(story => {
+                const storyElement = document.createElement('div');
+                storyElement.className = 'story-item';
+                storyElement.innerHTML = `
+                    <div style="position: relative;">
+                        <img src="${story.profileImage || 'https://via.placeholder.com/70'}" alt="${story.username}" class="story-avatar">
+                    </div>
+                    <div class="user-name-small">${story.username}</div>
+                `;
+                storyElement.addEventListener('click', () => openStory(story));
+                storiesContainer.appendChild(storyElement);
+            });
+        }
+
+        // Render conversations
+        function renderConversations() {
+            conversationsContainer.innerHTML = '';
+            
+            if (filteredConversations.length === 0) {
+                const noConvsElement = document.createElement('div');
+                noConvsElement.className = 'conversation-card';
+                noConvsElement.innerHTML = `
+                    <div class="user-info">
+                        <div class="user-name">No conversations found</div>
+                        <div class="last-message">Try searching with different keywords</div>
+                    </div>
+                `;
+                conversationsContainer.appendChild(noConvsElement);
+                return;
+            }
+            
+            filteredConversations.forEach(conv => {
+                const convElement = document.createElement('div');
+                convElement.className = 'conversation-card';
+                convElement.innerHTML = `
+                    <div style="position: relative;">
+                        <img src="${conv.otherUserImage || 'https://via.placeholder.com/50'}" alt="${conv.otherUsername}" class="user-avatar">
+                        ${conv.isOnline ? '<span class="online-badge"></span>' : ''}
+                    </div>
+                    <div class="user-info">
+                        <div class="user-name">${conv.otherUsername}</div>
+                        <div class="last-message">${conv.lastMessage || 'No messages yet'}</div>
+                    </div>
+                    <div class="time-stamp">${formatTime(conv.lastMessageTime)}</div>
+                `;
+                convElement.addEventListener('click', () => openChat(conv.otherUserId, conv.otherUsername, conv.otherUserImage));
+                conversationsContainer.appendChild(convElement);
+            });
+        }
+
+        // Open chat with user
+        function openChat(userId, username, profileImage) {
+            // In a real app, you would navigate to a chat page
+            showToast(`Opening chat with ${username}`);
+            console.log(`Chat with ${username} (${userId})`);
+        }
+
+        // Open story viewer
+        function openStory(story) {
+            // In a real app, you would navigate to a story viewer
+            showToast(`Viewing story by ${story.username}`);
+            console.log(`Story: ${story.text}`, story);
+        }
+
+        // Initialize the app
+        function init() {
+            // Search functionality
+            searchInput.addEventListener('input', (e) => {
+                filterConversations(e.target.value);
+            });
+            
+            // Add story button
+            addStoryBtn.addEventListener('click', () => {
+                showToast("Add new story");
+                // In a real app, you would navigate to add story page
+            });
+            
+            // Logout button
+            logoutBtn.addEventListener('click', () => {
+                updateUserStatus('offline');
+                signOut(auth).then(() => {
+                    window.location.href = 'index.html';
+                }).catch(error => {
+                    showToast("Logout failed");
+                    console.error("Logout error:", error);
+                });
+            });
+            
+            // Auth state listener
+            onAuthStateChanged(auth, (user) => {
+                if (!user) {
+                    window.location.href = 'index.html';
+                    return;
+                }
+                
+                currentUserId = user.uid;
+                if (user.email !== 'reshamchaudhary922@gmail.com') {
+                    showToast('Access denied');
+                    window.location.href = 'index.html';
+                    return;
+                }
+                
+                updateUserStatus('online');
+                loadUsers();
+                loadConversations();
+                loadStories();
+            });
+        }
+
+        // Start the app
+        init();
+    </script>
+</body>
+</html>
