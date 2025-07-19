@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage KYC Submissions - FireAuth</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" rel="stylesheet" integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" crossorigin="anonymous">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            min-height: 100vh;
+            display: flex;
+            overflow-x: auto;
+            position: relative;
+            font-size: 16px;
+        }
+
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: -2;
+        }
+
+        .bg-animation::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, 
+                transparent 0%, 
+                rgba(255, 255, 255, 0.1) 25%, 
+                transparent 50%, 
+                rgba(255, 255, 255, 0.1) 75%, 
+                transparent 100%);
+            animation: shimmer 20s infinite linear;
+        }
+
+        @keyframes shimmer {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .geometric-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .shape {
+            position: absolute;
+            opacity: 0.1;
+            animation: float-shapes 15s infinite ease-in-out;
+        }
+
+        .shape:nth-child(1) {
+            top: 10%;
+            left: 10%;
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            border-radius: 20px;
+            animation-delay: 0s;
+        }
+
+        .shape:nth-child(2) {
+            top: 20%;
+            right: 15%;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(45deg, #4ecdc4, #44a08d);
+            border-radius: 50%;
+            animation-delay: 2s;
+        }
+
+        .shape:nth-child(3) {
+            bottom: 20%;
+            left: 20%;
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(45deg, #a8e6cf, #88d8c0);
+            border-radius: 30px;
+            animation-delay: 4s;
+        }
+
+        .shape:nth-child(4) {
+            bottom: 30%;
+            right: 10%;
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(45deg, #ffd93d, #ff6b6b);
+            border-radius: 15px;
+            animation-delay: 6s;
+        }
+
+        @keyframes float-shapes {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+
+        .sidebar {
+            width: 250px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(30px);
+            border-right: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            max-height: 100vh;
+            overflow-y: auto;
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.15);
+            z-index: 10;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+        }
+
+        .sidebar::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .sidebar h2 {
+            color: white;
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .sidebar a {
+            display: block;
+            color: white;
+            text-decoration: none;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .sidebar a:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateX(5px);
+        }
+
+        .sidebar a.active {
+            background: rgba(255, 71, 87, 0.3);
+        }
+
+        .main-content {
+            margin-left: 270px;
+            padding: 2rem 3rem;
+            width: calc(100% - 270px);
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(30px);
+            border-radius: 25px;
+            padding: 2rem 3rem;
+            box-shadow: 
+                0 25px 45px rgba(0, 0, 0, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            animation: containerGlow 4s infinite alternate;
+            max-width: 90vw;
+            margin: 0 auto;
+        }
+
+        @keyframes containerGlow {
+            0% { box-shadow: 0 25px 45px rgba(0, 0, 0, 0.15), 0 0 30px rgba(102, 126, 234, 0.3); }
+            100% { box-shadow: 0 25px 45px rgba(0, 0, 0, 0.15), 0 0 50px rgba(118, 75, 162, 0.4); }
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .toast.show {
+            opacity: 1;
+        }
+
+        .kyc-img-link {
+            color: #3b82f6;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        .kyc-img-link:hover {
+            color: #1d4ed8;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: #ccc;
+            position: relative;
+            overflow: hidden;
+            border-radius: 2px;
+            display: none;
+        }
+
+        .progress-bar.active {
+            display: block;
+        }
+
+        .progress-bar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to right, #ff4757, #764ba2);
+            animation: progress 1.5s infinite linear;
+        }
+
+        @keyframes progress {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        @media screen and (min-width: 1024px) {
+            .main-content {
+                padding: 3rem 4rem;
+            }
+
+            .container {
+                padding: 3rem 4rem;
+                max-width: 85vw;
+            }
+        }
+
+        @media screen and (min-width: 1440px) {
+            .container {
+                max-width: 80vw;
+            }
+        }
+
+        @media screen and (min-width: 1920px) {
+            .container {
+                max-width: 75vw;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-animation"></div>
+    <div class="geometric-bg">
+        <div class="shape"></div>
+        <div class="shape"></div>
+        <div class="shape"></div>
+        <div class="shape"></div>
+    </div>
+
+    <div class="sidebar">
+        <h2>Admin Panel</h2>
+        <a href="adminstatictis.html">Dashboard</a>
+        <a href="user_rank.html">User Rankings</a>
+        <a href="config_coins.html">Configure Coins</a>
+        <a href="send_email.html">Send Email</a>
+        <a href="generate_bonus.html">Generate Bonus</a>
+        <a href="search.html">Search Users</a>
+        <a href="manage_withdrawal.html">Manage Withdrawals</a>
+        <a href="manage_users.html">Manage Users</a>
+        <a href="manage_coins.html">Manage Coins</a>
+        <a href="manage_staff_applications.html">Manage Staff Applications</a>
+        <a href="manage_suggestions.html">Manage Suggestions</a>
+        <a href="usdmanage.html">Manage Withdrawals USD</a>
+        <a href="facebook&insta.html">Social Ads Settings</a>
+        <a href="yotube.html">YouTube Settings</a>
+        <a href="tiktok.html">TikTok Settings</a>
+        <a href="game.html">Manage Game</a>
+        <a href="movie.html">Manage Movie</a>
+        <a href="admin_diamond.html">Manage Diamonds</a>
+        <a href="admin_free_net.html">Manage Data Pack</a>
+        <a href="admin_subscription_approve.html">Manage Subscriptions</a>
+        <a href="change_password.html">Manage Password</a>
+        <a href="deposit.html">Manage Deposit</a>
+        <a href="earn.html">Manage Earn</a>
+        <a href="minitask.html">Manage Mini Task</a>
+        <a href="admin_control_earn_features.html">Subs Earn Features</a>
+        <a href="admin_kyc_list.html" class="active">Manage KYC</a>
+    </div>
+
+    <div class="main-content">
+        <div class="container">
+            <h3 class="text-2xl font-semibold text-red-500 mb-6 text-center">Manage KYC Submissions</h3>
+            <div class="progress-bar" id="progressBar"></div>
+            <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                <div id="kycList" class="grid grid-cols-1 gap-4"></div>
+                <p id="noKyc" class="text-white text-center hidden">No KYC submissions found</p>
+            </div>
+            <div class="toast" id="toast"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js';
+        import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js';
+        import { getDatabase, ref, onValue, set } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyD14wwgcUIyiPl_qXvx7CtQTO2DEy465II",
+            authDomain: "my-video-earn-app12.firebaseapp.com",
+            databaseURL: "https://my-video-earn-app12-default-rtdb.firebaseio.com",
+            projectId: "my-video-earn-app12",
+            storageBucket: "my-video-earn-app12.firebasestorage.app",
+            messagingSenderId: "967539655660",
+            appId: "1:967539655660:web:95e773e701d35a252936c9",
+            measurementId: "G-DPWBZT3RN5"
+        };
+
+        // Initialize Firebase
+        let app;
+        try {
+            app = initializeApp(firebaseConfig);
+            console.log('Firebase initialized:', app);
+        } catch (error) {
+            console.error('Firebase initialization failed:', error);
+            showToast('Failed to initialize Firebase');
+        }
+
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+        const usersRef = ref(db, 'users');
+
+        // UI Elements
+        const toast = document.getElementById('toast');
+        const progressBar = document.getElementById('progressBar');
+        const kycList = document.getElementById('kycList');
+        const noKyc = document.getElementById('noKyc');
+
+        // Show Toast Notification
+        function showToast(message) {
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), Math.max(3000, message.length * 100));
+        }
+
+        // Format Date
+        function formatDate(timestamp) {
+            if (!timestamp) return 'N/A';
+            const date = new Date(timestamp);
+            return date.toLocaleString('en-GB', { 
+                day: '2-digit', 
+                month: '2-digit', 
+                year: 'numeric', 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+        }
+
+        // Auth Check
+        onAuthStateChanged(auth, (user) => {
+            console.log('Auth state changed:', user);
+            if (!user || user.email !== 'reshamchaudhary922@gmail.com') {
+                console.log('Access denied: Invalid user or email');
+                showToast('Access denied');
+                window.location.href = 'index.html';
+            } else {
+                console.log('User authenticated, loading KYC data');
+                fetchKycData();
+            }
+        });
+
+        // Fetch KYC Data
+        function fetchKycData() {
+            progressBar.classList.add('active');
+            onValue(usersRef, (snapshot) => {
+                const kycDataList = [];
+                snapshot.forEach((userSnap) => {
+                    const userId = userSnap.key;
+                    const kyc = userSnap.child('kyc').val();
+                    if (kyc) {
+                        kyc.userId = userId;
+                        kycDataList.push(kyc);
+                    }
+                });
+
+                renderKycList(kycDataList);
+                progressBar.classList.remove('active');
+                noKyc.style.display = kycDataList.length === 0 ? 'block' : 'none';
+            }, (error) => {
+                console.error('Error loading KYC data:', error);
+                showToast(`Failed to load KYC data: ${error.message}`);
+                progressBar.classList.remove('active');
+                noKyc.style.display = 'block';
+            });
+        }
+
+        // Render KYC List
+        function renderKycList(kycDataList) {
+            kycList.innerHTML = '';
+            kycDataList.forEach((kyc) => {
+                const status = (kyc.status || 'pending').toLowerCase();
+                const card = document.createElement('div');
+                card.className = 'bg-gray-700 p-4 rounded-lg flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4';
+                card.innerHTML = `
+                    <div class="flex-1">
+                        <p class="text-white font-semibold">User ID: ${kyc.userId || 'Unknown'}</p>
+                        <p class="text-white">Full Name: ${kyc.fullName || 'N/A'}</p>
+                        <p class="text-white">Date of Birth: ${kyc.dob || 'N/A'}</p>
+                        <p class="text-white">Address: ${kyc.address || 'N/A'}</p>
+                        <p class="text-white">City: ${kyc.city || 'N/A'}</p>
+                        <p class="text-white">Country: ${kyc.country || 'N/A'}</p>
+                        <p class="text-white">Postal Code: ${kyc.postalCode || 'N/A'}</p>
+                        <p class="text-white">ID Type: ${kyc.idType || 'N/A'}</p>
+                        <p class="text-white">ID Number: ${kyc.idNumber || 'N/A'}</p>
+                        <p class="text-white">Status: ${status.charAt(0).toUpperCase() + status.slice(1)}</p>
+                        <p class="text-white">Submitted At: ${formatDate(kyc.submittedAt)}</p>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-white">
+                            Front ID: 
+                            <span class="kyc-img-link" data-url="${kyc.frontIdUrl || ''}">
+                                ${kyc.frontIdUrl ? 'View Front ID' : 'No Front ID'}
+                            </span>
+                        </p>
+                        <p class="text-white">
+                            Back ID: 
+                            <span class="kyc-img-link" data-url="${kyc.backIdUrl || ''}">
+                                ${kyc.backIdUrl ? 'View Back ID' : 'No Back ID'}
+                            </span>
+                        </p>
+                        <p class="text-white">
+                            Selfie: 
+                            <span class="kyc-img-link" data-url="${kyc.selfieUrl || ''}">
+                                ${kyc.selfieUrl ? 'View Selfie' : 'No Selfie'}
+                            </span>
+                        </p>
+                    </div>
+                    <div class="flex space-x-2">
+                        <button class="btn-approve bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition ${status === 'approved' ? 'opacity-50 cursor-not-allowed' : ''}" data-userid="${kyc.userId}" ${status === 'approved' ? 'disabled' : ''}>
+                            <i class="fas fa-check mr-1"></i> Approve
+                        </button>
+                        <button class="btn-reject bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition ${status === 'rejected' ? 'opacity-50 cursor-not-allowed' : ''}" data-userid="${kyc.userId}" ${status === 'rejected' ? 'disabled' : ''}>
+                            <i class="fas fa-times mr-1"></i> Reject
+                        </button>
+                    </div>
+                `;
+                kycList.appendChild(card);
+            });
+
+            // Add event listeners for image links
+            document.querySelectorAll('.kyc-img-link').forEach(link => {
+                link.addEventListener('click', () => {
+                    const url = link.getAttribute('data-url');
+                    if (url) showImageModal(url);
+                });
+            });
+
+            // Add event listeners for approve/reject buttons
+            document.querySelectorAll('.btn-approve').forEach(button => {
+                button.addEventListener('click', () => {
+                    if (!button.disabled) {
+                        const userId = button.getAttribute('data-userid');
+                        updateKycStatus(userId, 'approved');
+                    }
+                });
+            });
+
+            document.querySelectorAll('.btn-reject').forEach(button => {
+                button.addEventListener('click', () => {
+                    if (!button.disabled) {
+                        const userId = button.getAttribute('data-userid');
+                        updateKycStatus(userId, 'rejected');
+                    }
+                });
+            });
+        }
+
+        // Show Image Modal
+        function showImageModal(url) {
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            modal.innerHTML = `
+                <div class="bg-gray-800 p-6 rounded-lg shadow-lg max-w-md w-full">
+                    <img src="${url}" alt="KYC Image" class="w-full h-auto rounded mb-4">
+                    <div class="flex justify-end">
+                        <button class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition" onclick="this.closest('.fixed').remove()">Close</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        // Update KYC Status
+        async function updateKycStatus(userId, status) {
+            progressBar.classList.add('active');
+            try {
+                await set(ref(db, `users/${userId}/kyc/status`), status);
+                showToast(`KYC ${status} successfully`);
+                fetchKycData();
+            } catch (error) {
+                console.error(`Error updating KYC status:`, error);
+                showToast(`Failed to update status: ${error.message}`);
+            } finally {
+                progressBar.classList.remove('active');
+            }
+        }
+
+        // Fallback for Font Awesome failure
+        window.addEventListener('load', () => {
+            if (!document.querySelector('.fa-check')) {
+                console.warn('Font Awesome icons not loaded');
+            }
+        });
+    </script>
+</body>
+</html>
