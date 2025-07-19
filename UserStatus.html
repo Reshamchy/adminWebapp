@@ -241,6 +241,59 @@
             color: #ff4757;
         }
 
+        .daily-open-table {
+            width: 100%;
+            margin-top: 10px;
+            border-collapse: collapse;
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .daily-open-table th, 
+        .daily-open-table td {
+            padding: 8px 12px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .daily-open-table th {
+            background: rgba(0, 0, 0, 0.2);
+            color: #ff4757;
+            font-weight: 500;
+        }
+
+        .daily-open-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .toggle-daily-btn {
+            background: rgba(255, 71, 87, 0.3);
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 5px;
+            font-size: 0.8rem;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-daily-btn:hover {
+            background: rgba(255, 71, 87, 0.5);
+        }
+
+        .daily-data-container {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease;
+        }
+
+        .daily-data-container.show {
+            max-height: 500px;
+            margin-top: 10px;
+        }
+
         /* Media Queries */
         @media screen and (min-width: 1024px) {
             .main-content {
@@ -347,6 +400,13 @@
             setTimeout(() => toast.classList.remove('show'), Math.max(3000, message.length * 100));
         }
 
+        // Format timestamp to readable date
+        function formatDate(timestamp) {
+            if (!timestamp) return 'N/A';
+            const date = new Date(timestamp);
+            return date.toLocaleString();
+        }
+
         // Auth Check
         onAuthStateChanged(auth, (user) => {
             if (!user || user.email !== 'reshamchaudhary922@gmail.com') {
@@ -366,6 +426,18 @@
                 snapshot.forEach(userSnap => {
                     const userId = userSnap.key;
                     const data = userSnap.val();
+                    
+                    // Process daily open data
+                    let dailyOpenData = [];
+                    if (data.appstatus && data.appstatus.dailyOpenData) {
+                        dailyOpenData = Object.entries(data.appstatus.dailyOpenData).map(([date, count]) => ({
+                            date,
+                            count
+                        }));
+                        // Sort by date (newest first)
+                        dailyOpenData.sort((a, b) => new Date(b.date) - new Date(a.date));
+                    }
+
                     const user = {
                         userId,
                         name: data.username || 'Unknown',
@@ -374,7 +446,8 @@
                         points: data.points || 0,
                         status: data.appstatus?.status || 'Offline',
                         dailyOpenCount: data.appstatus?.dailyOpenCount || 0,
-                        lastOffline: data.appstatus?.lastOffline || 'N/A'
+                        lastOffline: formatDate(data.appstatus?.lastOffline),
+                        dailyOpenData
                     };
                     userList.push(user);
                 });
@@ -395,6 +468,34 @@
             userList.forEach((user, index) => {
                 const userCard = document.createElement('div');
                 userCard.className = 'user-card';
+                
+                // Create daily data table HTML
+                let dailyDataHTML = '';
+                if (user.dailyOpenData && user.dailyOpenData.length > 0) {
+                    dailyDataHTML = `
+                        <div class="daily-data-container" id="daily-data-${user.userId}">
+                            <table class="daily-open-table">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Open Count</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${user.dailyOpenData.map(entry => `
+                                        <tr>
+                                            <td>${entry.date}</td>
+                                            <td>${entry.count}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    `;
+                } else {
+                    dailyDataHTML = '<p>No daily open data available</p>';
+                }
+
                 userCard.innerHTML = `
                     <p class="rank">Rank: ${index + 1}</p>
                     <p>Name: ${user.name}</p>
@@ -403,12 +504,30 @@
                     <p>Points: ${user.points}</p>
                     <p>Phone: ${user.phone}</p>
                     <p>Status: ${user.status}</p>
-                    <p>Opens Today: ${user.dailyOpenCount}</p>
+                    <p>Total Open Count: ${user.dailyOpenCount}</p>
                     <p>Last Offline: ${user.lastOffline}</p>
+                    ${user.dailyOpenData && user.dailyOpenData.length > 0 ? 
+                        `<button class="toggle-daily-btn" onclick="toggleDailyData('${user.userId}')">Show Daily Open Data</button>` : 
+                        ''}
+                    ${dailyDataHTML}
                 `;
                 userListContainer.appendChild(userCard);
             });
         }
+
+        // Add toggle function to window so it's accessible in inline onclick
+        window.toggleDailyData = function(userId) {
+            const container = document.getElementById(`daily-data-${userId}`);
+            const button = container.previousElementSibling;
+            
+            if (container.classList.contains('show')) {
+                container.classList.remove('show');
+                button.textContent = 'Show Daily Open Data';
+            } else {
+                container.classList.add('show');
+                button.textContent = 'Hide Daily Open Data';
+            }
+        };
     </script>
 </body>
 </html>
