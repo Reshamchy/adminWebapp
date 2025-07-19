@@ -680,175 +680,176 @@
         </div>
     </div>
 
-    <script type="module">
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js';
-        import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js';
-        import { getDatabase, ref, onValue, set } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js';
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+    import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+    import { getDatabase, ref, onValue, set } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyD14wwgcUIyiPl_qXvx7CtQTO2DEy465II",
-            authDomain: "my-video-earn-app12.firebaseapp.com",
-            databaseURL: "https://my-video-earn-app12-default-rtdb.firebaseio.com",
-            projectId: "my-video-earn-app12",
-            storageBucket: "my-video-earn-app12.firebasestorage.app",
-            messagingSenderId: "967539655660",
-            appId: "1:967539655660:web:95e773e701d35a252936c9",
-            measurementId: "G-DPWBZT3RN5"
-        };
+    const firebaseConfig = {
+        apiKey: "AIzaSyD14wwgcUIyiPl_qXvx7CtQTO2DEy465II",
+        authDomain: "my-video-earn-app12.firebaseapp.com",
+        databaseURL: "https://my-video-earn-app12-default-rtdb.firebaseio.com",
+        projectId: "my-video-earn-app12",
+        storageBucket: "my-video-earn-app12.firebasestorage.app",
+        messagingSenderId: "967539655660",
+        appId: "1:967539655660:web:95e773e701d35a252936c9",
+        measurementId: "G-DPWBZT3RN5"
+    };
 
-        // Initialize Firebase
-        let app;
-        try {
-            app = initializeApp(firebaseConfig);
-            console.log('Firebase initialized successfully');
-        } catch (error) {
-            console.error('Firebase initialization error:', error);
-            showToast('Failed to initialize Firebase: ' + error.message);
-            // Continue execution instead of returning
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getDatabase(app);
+
+    // UI Elements
+    const toast = document.getElementById('toast');
+
+    // Feature map (matching Android featureMap)
+    const featureMap = {
+        "spin": "switchSpin",
+        "quiz": "switchQuiz",
+        "staking": "switchStaking",
+        "loan": "switchLoan",
+        "video_ad": "switchVideoAd",
+        "btc_trade": "switchBtcTrade",
+        "walk": "switchWalk",
+        "tap": "switchTap",
+        "mining": "switchMining",
+        "dice": "switchDice",
+        "hold": "switchHold",
+        "shake": "switchShake",
+        "one_word": "switchOneWord",
+        "slot": "switchSlot",
+        "salary": "switchSalary",
+        "dev_order": "switchDevOrder",
+        "ourServies": "switchOurServies",
+        "dailyExercise": "switchDailyExercise",
+        "festival": "switchFestival",
+        "rainDrop": "switchRainDrop",
+        "search": "switchSearch",
+        "logo": "switchLogo",
+        "read": "switchRead",
+        "box": "switchBox",
+        "zoomTask": "switchZoomTask",
+        "challange": "switchChallange",
+        "ownTask": "switchOwnTask",
+        "invest": "switchInvest",
+        "redPoket": "switchRedPoket",
+        "shorts": "switchShorts",
+        "watchTrailer": "switchWatchTrailer",
+        "games2": "switchGames2",
+        "chess1": "switchChess1",
+        "emoji1": "switchEmoji1",
+        "qr": "switchQr",
+        "promote": "switchPromote",
+        "nbr": "switchNbr",
+        "support": "switchSupport",
+        "predict3": "switchPredict3",
+        "calendar": "switchCalendar",
+        "memes": "switchMemes",
+        "captcha": "switchCaptcha",
+        "eyes": "switcheyes",
+        "emoji": "switchEmoji",
+        "dataEntry": "switchDataEntry",
+        "scrtach": "switchScrtach",
+        "opinion": "switchOpinion",
+        "game2": "switchGame2",
+        "lottery": "switchLottery"
+    };
+
+    // Show Toast Notification
+    function showToast(message) {
+        toast.textContent = message;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), Math.max(3000, message.length * 100));
+    }
+
+    // Auth Check
+    onAuthStateChanged(auth, (user) => {
+        if (!user || user.email !== 'reshamchaudhary922@gmail.com') {
+            showToast('Access denied');
+            window.location.href = 'index.html';
+        } else {
+            loadFeatureStates();
         }
+    });
 
-        const auth = getAuth(app);
-        const db = getDatabase(app);
-        const toast = document.getElementById('toast');
-
-        // Feature map
-        const featureMap = {
-            "spin": "switchSpin",
-            "quiz": "switchQuiz",
-            "staking": "switchStaking",
-            "loan": "switchLoan",
-            "video_ad": "switchVideoAd",
-            "btc_trade": "switchBtcTrade",
-            "walk": "switchWalk",
-            "tap": "switchTap",
-            "mining": "switchMining",
-            "dice": "switchDice",
-            "hold": "switchHold",
-            "shake": "switchShake",
-            "one_word": "switchOneWord",
-            "slot": "switchSlot",
-            "salary": "switchSalary",
-            "dev_order": "switchDevOrder",
-            "ourServies": "switchOurServices",
-            "dailyExercise": "switchDailyExercise",
-            "festival": "switchFestival",
-            "rainDrop": "switchRainDrop",
-            "search": "switchSearch",
-            "logo": "switchLogo",
-            "read": "switchRead",
-            "box": "switchBox",
-            "zoomTask": "switchZoomTask",
-             "challange": "switchChallenge",
-            "ownTask": "switchOwnTask",
-            "invest": "switchInvest",
-            "redPoket": "switchRedPocket",
-            "shorts": "switchShorts",
-            "watchTrailer": "switchWatchTrailer",
-            "games2": "switchGames2",
-            "chess1": "switchChess1",
-            "emoji1": "switchEmoji1",
-            "qr": "switchQr",
-            "promote": "switchPromote",
-            "nbr": "switchNbr",
-            "support": "switchSupport",
-            "predict3": "switchPredict3",
-            "calendar": "switchCalendar",
-            "memes": "switchMemes",
-            "captcha": "switchCaptcha",
-            "eyes": "switchEyes",
-            "emoji": "switchEmoji",
-            "dataEntry": "switchDataEntry",
-             "scrtach": "switchScratch",
-            "opinion": "switchOpinion",
-            "game2": "switchGame2",
-            "lottery": "switchLottery"
-        };
-
-        // Show Toast Notification
-        function showToast(message) {
-            if (!toast) {
-                console.error('Toast element not found');
+    // Load Feature States from Firebase
+    function loadFeatureStates() {
+        Object.entries(featureMap).forEach(([featureKey, switchId]) => {
+            const featureSwitch = document.getElementById(switchId);
+            if (!featureSwitch) {
+                console.error(`Switch element not found: ${switchId}`);
                 return;
             }
-            toast.textContent = message;
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), Math.max(3000, message.length * 100));
-        }
+            
+            featureSwitch.disabled = true; // Disable until loaded
 
-        // Initialize switches
-        function initializeSwitches() {
-            Object.entries(featureMap).forEach(([featureKey, switchId]) => {
-                const featureSwitch = document.getElementById(switchId);
-                if (!featureSwitch) {
-                    console.error(`Switch element not found: ${switchId}`);
-                    showToast(`Error: Switch ${switchId} not found`);
-                    return;
-                }
-
-                // Initially disable switch
-                featureSwitch.disabled = true;
-
-                // Add event listener first
-                featureSwitch.addEventListener('change', () => {
-                    if (!featureSwitch.disabled) {
-                        updateFeatureInDatabase(featureKey, featureSwitch.checked);
-                    }
-                });
-
-                // Load initial state
-                const featureRef = ref(db, `earn_features/${featureKey}`);
-                onValue(featureRef, (snapshot) => {
-                    const isEnabled = snapshot.val() ?? false;
-                    console.log(`Loaded ${featureKey}: ${isEnabled}`);
-                    featureSwitch.checked = isEnabled;
-                    featureSwitch.disabled = false;
-                }, (error) => {
-                    console.error(`Error loading ${featureKey}:`, error);
-                    showToast(`Failed to load ${featureKey}: ${error.message}`);
-                    featureSwitch.disabled = false;
-                });
-            });
-        }
-
-        // Update Feature in Firebase
-        async function updateFeatureInDatabase(featureKey, isEnabled) {
-            const featureSwitch = document.getElementById(featureMap[featureKey]);
-            try {
-                // Disable switch during update
-                featureSwitch.disabled = true;
-                await set(ref(db, `earn_features/${featureKey}`), isEnabled);
-                console.log(`Updated ${featureKey} to ${isEnabled}`);
-                showToast(`${featureKey.replace(/_/g, ' ')} feature ${isEnabled ? 'enabled' : 'disabled'}`);
-            } catch (error) {
-                console.error(`Error updating ${featureKey}:`, error);
-                showToast(`Failed to update ${featureKey}: ${error.message}`);
-                // Revert switch state on error
-                featureSwitch.checked = !isEnabled;
-            } finally {
+            onValue(ref(db, `earn_features/${featureKey}`), (snapshot) => {
+                const isEnabled = snapshot.val() ?? false;
+                featureSwitch.checked = isEnabled;
                 featureSwitch.disabled = false;
+            }, (error) => {
+                console.error(`Failed to load ${featureKey}:`, error);
+                showToast(`Failed to load ${featureKey} feature state`);
+                featureSwitch.disabled = false;
+            });
+        });
+        
+        // Add event listeners after loading states
+        setTimeout(() => {
+            addEventListeners();
+        }, 1000); // Small delay to ensure all Firebase listeners are set up
+    }
+
+    // Add Event Listeners to Switches
+    function addEventListeners() {
+        Object.entries(featureMap).forEach(([featureKey, switchId]) => {
+            const featureSwitch = document.getElementById(switchId);
+            if (featureSwitch) {
+                // Remove any existing listeners
+                featureSwitch.removeEventListener('change', featureSwitch.changeHandler);
+                
+                // Create new handler
+                featureSwitch.changeHandler = function() {
+                    updateFeatureInDatabase(featureKey, this.checked);
+                };
+                
+                // Add event listener
+                featureSwitch.addEventListener('change', featureSwitch.changeHandler);
             }
+        });
+    }
+
+    // Update Feature in Firebase
+    async function updateFeatureInDatabase(featureKey, isEnabled) {
+        const featureSwitch = document.getElementById(featureMap[featureKey]);
+        
+        try {
+            // Disable switch during update
+            featureSwitch.disabled = true;
+            
+            await set(ref(db, `earn_features/${featureKey}`), isEnabled);
+            showToast(`${featureKey.replace(/_/g, ' ')} ${isEnabled ? 'enabled' : 'disabled'}`);
+            
+        } catch (error) {
+            console.error(`Database update failed for ${featureKey}:`, error);
+            showToast(`Failed to update ${featureKey}: ${error.message}`);
+            
+            // Revert the switch state on error
+            featureSwitch.checked = !isEnabled;
+            
+        } finally {
+            // Re-enable switch
+            featureSwitch.disabled = false;
         }
+    }
 
-        // Auth Check
-        onAuthStateChanged(auth, (user) => {
-            console.log('Auth state changed:', user ? user.email : 'No user');
-            if (!user || user.email !== 'reshamchaudhary922@gmail.com') {
-                showToast('Access denied: Unauthorized user');
-                setTimeout(() => {
-                    window.location.href = 'index.html';
-                }, 1000);
-            } else {
-                console.log('User authenticated, initializing switches');
-                initializeSwitches();
-            }
-        });
-
-        // Fallback for Font Awesome failure
-        window.addEventListener('load', () => {
-            if (!document.querySelector('.fa-save')) {
-                console.warn('Font Awesome icons not loaded');
-            }
-        });
-    </script>
+    // Fallback for Font Awesome failure
+    window.addEventListener('load', () => {
+        if (!document.querySelector('.fa-save')) {
+            console.warn('Font Awesome icons not loaded');
+        }
+    });
+</script>
 </body>
 </html>
