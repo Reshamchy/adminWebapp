@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Earn Features Control - FireAuth</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" rel="stylesheet" integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" crossorigin="anonymous">
-    <link href="./dist/output.css" rel="stylesheet">
+    <title>Control Earn Features - Admin Panel</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         
@@ -218,12 +218,36 @@
             opacity: 1;
         }
 
+        .feature-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            transition: transform 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .feature-card h3 {
+            color: white;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .switch-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
         .switch {
             position: relative;
             display: inline-block;
-            width: 48px;
-            height: 24px;
-            vertical-align: middle;
+            width: 60px;
+            height: 34px;
         }
 
         .switch input {
@@ -240,19 +264,19 @@
             right: 0;
             bottom: 0;
             background-color: #ccc;
-            transition: 0.4s;
-            border-radius: 24px;
+            transition: .4s;
+            border-radius: 34px;
         }
 
         .slider:before {
             position: absolute;
             content: "";
-            height: 18px;
-            width: 18px;
-            left: 3px;
-            bottom: 3px;
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
             background-color: white;
-            transition: 0.4s;
+            transition: .4s;
             border-radius: 50%;
         }
 
@@ -261,9 +285,17 @@
         }
 
         input:checked + .slider:before {
-            transform: translateX(24px);
+            transform: translateX(26px);
         }
 
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        /* Media Queries */
         @media screen and (min-width: 1024px) {
             .main-content {
                 padding: 3rem 4rem;
@@ -324,547 +356,158 @@
         <a href="earn.html">Manage Earn</a>
         <a href="minitask.html">Manage Mini Task</a>
         <a href="admin_control_earn_features.html" class="active">Control Earn Features</a>
+        <a href="UserStatus.html">User Status</a>
     </div>
 
     <div class="main-content">
         <div class="container">
-            <h3 class="text-2xl font-semibold text-red-500 mb-6 text-center">Earn Features Control</h3>
-            <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
-                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    <div class="flex items-center">
-                        <label for="switchSpin" class="text-white font-semibold mr-2">Spin</label>
-                        <div class="switch">
-                            <input type="checkbox" id="switchSpin">
-                            <span class="slider"></span>
-                        </div>
-                    </div>
-                    <div class="flex items-center">
-                        <label for="switchQuiz" class="text-white font-semibold mr-2">Quiz</label>
-                        <div class="switch">
-                            <input type="checkbox" id="switchQuiz">
-                            <span class="slider"></span>
-                        </div>
-                    </div>
-                    <div class="flex items-center">
-                        <label for="switchStaking" class="text-white font-semibold mr-2">Staking</label>
-                        <div class="switch">
-                            <input type="checkbox" id="switchStaking">
-                            <span class="slider"></span>
-                        </div>
-                    </div>
-                    <div class="flex items-center">
-                        <label for="switchLoan" class="text-white font-semibold mr-2">Loan</label>
-                        <div class="switch">
-                            <input type="checkbox" id="switchLoan">
-                            <span class="slider"></span>
-                        </div>
-                    </div>
-                    <div class="flex items-center">
-                        <label for="switchVideoAd" class="text-white font-semibold mr-2">Video Ad</label>
-                        <div class="switch">
-                            <input type="checkbox" id="switchVideoAd">
-                            <span class="slider"></span>
-                        </div>
-                    </div>
-                    <div class="flex items-center">
-                        <label for="switchBtcTrade" class="text-white font-semibold mr-2">BTC Trade</label>
-                        <div class="switch">
-                            <input type="checkbox" id="switchBtcTrade">
-                            <span class="slider"></span>
-                        </div>
-                    </div>
-                    <div class="flex items-center">
-                        <label for="switchWalk" class="text-white font-semibold mr-2">Walk</label>
-                        <div class="switch">
-                            <input type="checkbox" id="switchWalk">
-                            <span class="slider"></span>
-                        </div>
-                    </div>
-                    <div class="flex items-center">
-                        <label for="switchTap" class="text-white font-semibold mr-2">Tap</label>
-                        <div class="switch">
-                            <input type="checkbox" id="switchTap">
-                            <span class="slider"></span>
-                        </div>
-                    </div>
-                    <div class="flex items-center">
-                        <label for="switchMining" class="text-white font-semibold mr-2">Mining</label>
-                        <div class="switch">
-                            <input type="checkbox" id="switchMining">
-                            <span class="slider"></span>
-                        </div>
-                    </div>
-                    <div class="flex items-center">
-                        <label for="switchDice" class="text-white font-semibold mr-2">Dice</label>
-                        <div class="switch">
-                            <input type="checkbox" id="switchDice">
-                            <span class="slider"></span>
-                        </div>
-                    </div>
-                    <div class="flex items-center">
-                        <label for="switchHold" class="text-white font-semibold mr-2">Hold</label>
-                        <div class="switch">
-                            <input type="checkbox" id="switchHold">
-                            <span class="slider"></span>
-                        </div>
-                    </div>
-                    <div class="flex items-center">
-                        <label for="switchShake" class="text-white font-semibold mr-2">Shake</label>
-                        <div class="switch">
-                            <input type="checkbox" id="switchShake">
-                            <span class="slider"></span>
-                        </div>
-                    </div>
-                    <div class="flex items-center">
-                        <label for="switchOneWord" class="text-white font-semibold mr-2">One Word</label>
-                        <div class="switch">
-                            <input type="checkbox" id="switchOneWord">
-                            <span class="slider"></span>
-                        </div>
-                    </div>
-                    <div class="flex items-center">
-                        <label for="switchSlot" class="text-white font-semibold mr-2">Slot</label>
-                        <div class="switch">
-                            <input type="checkbox" id="switchSlot">
-                            <span class="slider"></span>
-                        </div>
-                    </div>
-                    <div class="flex items-center">
-                        <label for="switchSalary" class="text-white font-semibold mr-2">Salary</label>
-                        <div class="switch">
-                            <input type="checkbox" id="switchSalary">
-                            <span class="slider"></span>
-                        </div>
-                    </div>
-                    <div class="flex items-center">
-                        <label for="switchDevOrder" class="text-white font-semibold mr-2">Dev Order</label>
-                        <div class="switch">
-                            <input type="checkbox" id="switchDevOrder">
-                            <span class="slider"></span>
-                        </div>
-                    </div>
-                    <div class="flex items-center">
-                        <label for="switchOurServices" class="text-white font-semibold mr-2">Our Services</label>
-                        <div class="switch">
-                            <input type="checkbox" id="switchOurServices">
-                            <span class="slider"></span>
-                        </div>
-                    </div>
-                    <div class="flex items-center">
-                        <label for="switchDailyExercise" class="text-white font-semibold mr-2">Daily Exercise</label>
-                        <div class="switch">
-                            <input type="checkbox" id="switchDailyExercise">
-                            <span class="slider"></span>
-                        </div>
-                    </div>
-                    <div class="flex items-center">
-                        <label for="switchFestival" class="text-white font-semibold mr-2">Festival</label>
-                        <div class="switch">
-                            <input type="checkbox" id="switchFestival">
-                            <span class="slider"></span>
-                        </div>
-                    </div>
-                    <div class="flex items-center">
-                        <label for="switchRainDrop" class="text-white font-semibold mr-2">Rain Drop</label>
-                        <div class="switch">
-                            <input type="checkbox" id="switchRainDrop">
-                            <span class="slider"></span>
-                        </div>
-                    </div>
-                    <div class="flex items-center">
-                        <label for="switchSearch" class="text-white font-semibold mr-2">Search</label>
-                        <div class="switch">
-                            <input type="checkbox" id="switchSearch">
-                            <span class="slider"></span>
-                        </div>
-                    </div>
-                    <div class="flex items-center">
-                        <label for="switchLogo" class="text-white font-semibold mr-2">Logo</label>
-                        <div class="switch">
-                            <input type="checkbox" id="switchLogo">
-                            <span class="slider"></span>
-                        </div>
-                    </div>
-                    <div class="flex items-center">
-                        <label for="switchRead" class="text-white font-semibold mr-2">Read</label>
-                        <div class="switch">
-                            <input type="checkbox" id="switchRead">
-                            <span class="slider"></span>
-                        </div>
-                    </div>
-                    <div class="flex items-center">
-                        <label for="switchBox" class="text-white font-semibold mr-2">Box</label>
-                        <div class="switch">
-                            <input type="checkbox" id="switchBox">
-                            <span class="slider"></span>
-                        </div>
-                    </div>
-                    <div class="flex items-center">
-                        <label for="switchZoomTask" class="text-white font-semibold mr-2">Zoom Task</label>
-                        <div class="switch">
-                            <input type="checkbox" id="switchZoomTask">
-                            <span class="slider"></span>
-                        </div>
-                    </div>
-                    <div class="flex items-center">
-                        <label for="switchChallenge" class="text-white font-semibold mr-2">Challenge</label>
-                        <div class="switch">
-                            <input type="checkbox" id="switchChallenge">
-                            <span class="slider"></span>
-                        </div>
-                    </div>
-                    <div class="flex items-center">
-                        <label for="switchOwnTask" class="text-white font-semibold mr-2">Own Task</label>
-                        <div class="switch">
-                            <input type="checkbox" id="switchOwnTask">
-                            <span class="slider"></span>
-                        </div>
-                    </div>
-                    <div class="flex items-center">
-                        <label for="switchInvest" class="text-white font-semibold mr-2">Invest</label>
-                        <div class="switch">
-                            <input type="checkbox" id="switchInvest">
-                            <span class="slider"></span>
-                        </div>
-                    </div>
-                    <div class="flex items-center">
-                        <label for="switchRedPocket" class="text-white font-semibold mr-2">Red Pocket</label>
-                        <div class="switch">
-                            <input type="checkbox" id="switchRedPocket">
-                            <span class="slider"></span>
-                        </div>
-                    </div>
-                    <div class="flex items-center">
-                        <label for="switchShorts" class="text-white font-semibold mr-2">Shorts</label>
-                        <div class="switch">
-                            <input type="checkbox" id="switchShorts">
-                            <span class="slider"></span>
-                        </div>
-                    </div>
-                    <div class="flex items-center">
-                        <label for="switchWatchTrailer" class="text-white font-semibold mr-2">Watch Trailer</label>
-                        <div class="switch">
-                            <input type="checkbox" id="switchWatchTrailer">
-                            <span class="slider"></span>
-                        </div>
-                    </div>
-                    <div class="flex items-center">
-                        <label for="switchGames2" class="text-white font-semibold mr-2">Games 2</label>
-                        <div class="switch">
-                            <input type="checkbox" id="switchGames2">
-                            <span class="slider"></span>
-                        </div>
-                    </div>
-                    <div class="flex items-center">
-                        <label for="switchChess1" class="text-white font-semibold mr-2">Chess 1</label>
-                        <div class="switch">
-                            <input type="checkbox" id="switchChess1">
-                            <span class="slider"></span>
-                        </div>
-                    </div>
-                    <div class="flex items-center">
-                        <label for="switchEmoji1" class="text-white font-semibold mr-2">Emoji 1</label>
-                        <div class="switch">
-                            <input type="checkbox" id="switchEmoji1">
-                            <span class="slider"></span>
-                        </div>
-                    </div>
-                    <div class="flex items-center">
-                        <label for="switchQr" class="text-white font-semibold mr-2">QR</label>
-                        <div class="switch">
-                            <input type="checkbox" id="switchQr">
-                            <span class="slider"></span>
-                        </div>
-                    </div>
-                    <div class="flex items-center">
-                        <label for="switchPromote" class="text-white font-semibold mr-2">Promote</label>
-                        <div class="switch">
-                            <input type="checkbox" id="switchPromote">
-                            <span class="slider"></span>
-                        </div>
-                    </div>
-                    <div class="flex items-center">
-                        <label for="switchNbr" class="text-white font-semibold mr-2">NBR</label>
-                        <div class="switch">
-                            <input type="checkbox" id="switchNbr">
-                            <span class="slider"></span>
-                        </div>
-                    </div>
-                    <div class="flex items-center">
-                        <label for="switchSupport" class="text-white font-semibold mr-2">Support</label>
-                        <div class="switch">
-                            <input type="checkbox" id="switchSupport">
-                            <span class="slider"></span>
-                        </div>
-                    </div>
-                    <div class="flex items-center">
-                        <label for="switchPredict3" class="text-white font-semibold mr-2">Predict 3</label>
-                        <div class="switch">
-                            <input type="checkbox" id="switchPredict3">
-                            <span class="slider"></span>
-                        </div>
-                    </div>
-                    <div class="flex items-center">
-                        <label for="switchCalendar" class="text-white font-semibold mr-2">Calendar</label>
-                        <div class="switch">
-                            <input type="checkbox" id="switchCalendar">
-                            <span class="slider"></span>
-                        </div>
-                    </div>
-                    <div class="flex items-center">
-                        <label for="switchMemes" class="text-white font-semibold mr-2">Memes</label>
-                        <div class="switch">
-                            <input type="checkbox" id="switchMemes">
-                            <span class="slider"></span>
-                        </div>
-                    </div>
-                    <div class="flex items-center">
-                        <label for="switchCaptcha" class="text-white font-semibold mr-2">Captcha</label>
-                        <div class="switch">
-                            <input type="checkbox" id="switchCaptcha">
-                            <span class="slider"></span>
-                        </div>
-                    </div>
-                    <div class="flex items-center">
-                        <label for="switchEyes" class="text-white font-semibold mr-2">Eyes</label>
-                        <div class="switch">
-                            <input type="checkbox" id="switchEyes">
-                            <span class="slider"></span>
-                        </div>
-                    </div>
-                    <div class="flex items-center">
-                        <label for="switchEmoji" class="text-white font-semibold mr-2">Emoji</label>
-                        <div class="switch">
-                            <input type="checkbox" id="switchEmoji">
-                            <span class="slider"></span>
-                        </div>
-                    </div>
-                    <div class="flex items-center">
-                        <label for="switchDataEntry" class="text-white font-semibold mr-2">Data Entry</label>
-                        <div class="switch">
-                            <input type="checkbox" id="switchDataEntry">
-                            <span class="slider"></span>
-                        </div>
-                    </div>
-                    <div class="flex items-center">
-                        <label for="switchScratch" class="text-white font-semibold mr-2">Scratch</label>
-                        <div class="switch">
-                            <input type="checkbox" id="switchScratch">
-                            <span class="slider"></span>
-                        </div>
-                    </div>
-                    <div class="flex items-center">
-                        <label for="switchOpinion" class="text-white font-semibold mr-2">Opinion</label>
-                        <div class="switch">
-                            <input type="checkbox" id="switchOpinion">
-                            <span class="slider"></span>
-                        </div>
-                    </div>
-                    <div class="flex items-center">
-                        <label for="switchGame2" class="text-white font-semibold mr-2">Game 2</label>
-                        <div class="switch">
-                            <input type="checkbox" id="switchGame2">
-                            <span class="slider"></span>
-                        </div>
-                    </div>
-                    <div class="flex items-center">
-                        <label for="switchLottery" class="text-white font-semibold mr-2">Lottery</label>
-                        <div class="switch">
-                            <input type="checkbox" id="switchLottery">
-                            <span class="slider"></span>
-                        </div>
-                    </div>
-                </div>
+            <h3 class="text-2xl font-semibold text-red-500 mb-6 text-center">Control Earn Features</h3>
+            <div class="grid-container" id="featuresContainer">
+                <!-- Feature cards will be dynamically inserted here -->
             </div>
             <div class="toast" id="toast"></div>
         </div>
     </div>
 
-  <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-    import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-    import { getDatabase, ref, get, set, child } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { getDatabase, ref, onValue, set } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
 
-    const firebaseConfig = {
-        apiKey: "AIzaSyD14wwgcUIyiPl_qXvx7CtQTO2DEy465II",
-        authDomain: "my-video-earn-app12.firebaseapp.com",
-        databaseURL: "https://my-video-earn-app12-default-rtdb.firebaseio.com",
-        projectId: "my-video-earn-app12",
-        storageBucket: "my-video-earn-app12.firebasestorage.app",
-        messagingSenderId: "967539655660",
-        appId: "1:967539655660:web:95e773e701d35a252936c9",
-        measurementId: "G-DPWBZT3RN5"
-    };
+        const firebaseConfig = {
+            apiKey: "AIzaSyD14wwgcUIyiPl_qXvx7CtQTO2DEy465II",
+            authDomain: "my-video-earn-app12.firebaseapp.com",
+            databaseURL: "https://my-video-earn-app12-default-rtdb.firebaseio.com",
+            projectId: "my-video-earn-app12",
+            storageBucket: "my-video-earn-app12.firebasestorage.app",
+            messagingSenderId: "967539655660",
+            appId: "1:967539655660:web:95e773e701d35a252936c9",
+            measurementId: "G-DPWBZT3RN5"
+        };
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const database = getDatabase(app);
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+        const featuresRef = ref(db, 'earn_features');
 
-    const toast = document.getElementById('toast');
+        // UI Elements
+        const featuresContainer = document.getElementById('featuresContainer');
+        const toast = document.getElementById('toast');
 
-    const featureMap = {
-        "spin": "switchSpin",
-        "quiz": "switchQuiz", 
-        "staking": "switchStaking",
-        "loan": "switchLoan",
-        "video_ad": "switchVideoAd",
-        "btc_trade": "switchBtcTrade",
-        "walk": "switchWalk",
-        "tap": "switchTap",
-        "mining": "switchMining",
-        "dice": "switchDice",
-        "hold": "switchHold",
-        "shake": "switchShake",
-        "one_word": "switchOneWord",
-        "slot": "switchSlot",
-        "salary": "switchSalary",
-        "dev_order": "switchDevOrder",
-        "ourServies": "switchOurServies",
-        "dailyExercise": "switchDailyExercise",
-        "festival": "switchFestival",
-        "rainDrop": "switchRainDrop",
-        "search": "switchSearch",
-        "logo": "switchLogo",
-        "read": "switchRead",
-        "box": "switchBox",
-        "zoomTask": "switchZoomTask",
-        "challange": "switchChallange",
-        "ownTask": "switchOwnTask",
-        "invest": "switchInvest",
-        "redPoket": "switchRedPoket",
-        "shorts": "switchShorts",
-        "watchTrailer": "switchWatchTrailer",
-        "games2": "switchGames2",
-        "chess1": "switchChess1",
-        "emoji1": "switchEmoji1",
-        "qr": "switchQr",
-        "promote": "switchPromote",
-        "nbr": "switchNbr",
-        "support": "switchSupport",
-        "predict3": "switchPredict3",
-        "calendar": "switchCalendar",
-        "memes": "switchMemes",
-        "captcha": "switchCaptcha",
-        "eyes": "switcheyes",
-        "emoji": "switchEmoji",
-        "dataEntry": "switchDataEntry",
-        "scrtach": "switchScrtach",
-        "opinion": "switchOpinion",
-        "game2": "switchGame2",
-        "lottery": "switchLottery"
-    };
+        // Feature map matching your Kotlin code
+        const featureMap = [
+            { id: "spin", name: "Spin" },
+            { id: "quiz", name: "Quiz" },
+            { id: "staking", name: "Staking" },
+            { id: "loan", name: "Loan" },
+            { id: "video_ad", name: "Video Ad" },
+            { id: "btc_trade", name: "BTC Trade" },
+            { id: "walk", name: "Walk" },
+            { id: "tap", name: "Tap" },
+            { id: "mining", name: "Mining" },
+            { id: "dice", name: "Dice" },
+            { id: "hold", name: "Hold" },
+            { id: "shake", name: "Shake" },
+            { id: "one_word", name: "One Word" },
+            { id: "slot", name: "Slot" },
+            { id: "salary", name: "Salary" },
+            { id: "dev_order", name: "Dev Order" },
+            { id: "ourServies", name: "Our Services" },
+            { id: "dailyExercise", name: "Daily Exercise" },
+            { id: "festival", name: "Festival" },
+            { id: "rainDrop", name: "Rain Drop" },
+            { id: "search", name: "Search" },
+            { id: "logo", name: "Logo" },
+            { id: "read", name: "Read" },
+            { id: "box", name: "Box" },
+            { id: "zoomTask", name: "Zoom Task" },
+            { id: "challange", name: "Challenge" },
+            { id: "ownTask", name: "Own Task" },
+            { id: "invest", name: "Invest" },
+            { id: "redPoket", name: "Red Pocket" },
+            { id: "shorts", name: "Shorts" },
+            { id: "watchTrailer", name: "Watch Trailer" },
+            { id: "games2", name: "Games 2" },
+            { id: "chess1", name: "Chess 1" },
+            { id: "emoji1", name: "Emoji 1" },
+            { id: "qr", name: "QR Code" },
+            { id: "promote", name: "Promote" },
+            { id: "nbr", name: "NBR" },
+            { id: "support", name: "Support" },
+            { id: "predict3", name: "Predict 3" },
+            { id: "calendar", name: "Calendar" },
+            { id: "memes", name: "Memes" },
+            { id: "captcha", name: "Captcha" },
+            { id: "eyes", name: "Eyes" },
+            { id: "emoji", name: "Emoji" },
+            { id: "dataEntry", name: "Data Entry" },
+            { id: "scrtach", name: "Scratch" },
+            { id: "opinion", name: "Opinion" },
+            { id: "game2", name: "Game 2" },
+            { id: "lottery", name: "Lottery" }
+        ];
 
-    function showToast(message) {
-        toast.textContent = message;
-        toast.classList.add('show');
-        setTimeout(() => toast.classList.remove('show'), 3000);
-    }
-
-    async function loadFeatures() {
-        try {
-            const dbRef = ref(database);
-            const snapshot = await get(child(dbRef, 'earn_features'));
-            
-            if (snapshot.exists()) {
-                const data = snapshot.val();
-                console.log('Data loaded:', data);
-                
-                // Update switches based on database values
-                Object.entries(featureMap).forEach(([key, switchId]) => {
-                    const switchElement = document.getElementById(switchId);
-                    if (switchElement) {
-                        switchElement.checked = data[key] === true;
-                        switchElement.disabled = false;
-                    }
-                });
-                
-                showToast('Features loaded successfully');
-            } else {
-                console.log('No data available');
-                // Enable all switches with default false state
-                Object.values(featureMap).forEach(switchId => {
-                    const switchElement = document.getElementById(switchId);
-                    if (switchElement) {
-                        switchElement.checked = false;
-                        switchElement.disabled = false;
-                    }
-                });
-                showToast('No existing data - switches ready');
-            }
-            
-            // Add event listeners after loading data
-            setupSwitchListeners();
-            
-        } catch (error) {
-            console.error('Error loading features:', error);
-            showToast('Error loading features: ' + error.message);
+        // Show Toast Notification
+        function showToast(message) {
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), Math.max(3000, message.length * 100));
         }
-    }
 
-    function setupSwitchListeners() {
-        Object.entries(featureMap).forEach(([key, switchId]) => {
-            const switchElement = document.getElementById(switchId);
-            if (switchElement) {
-                switchElement.addEventListener('change', async function() {
-                    await updateFeature(key, this.checked);
-                });
+        // Auth Check
+        onAuthStateChanged(auth, (user) => {
+            if (!user || user.email !== 'reshamchaudhary922@gmail.com') {
+                showToast('Access denied');
+                window.location.href = 'index.html';
+            } else {
+                loadFeatures();
             }
         });
-        console.log('Event listeners added');
-    }
 
-    async function updateFeature(featureKey, isEnabled) {
-        try {
-            const featureRef = ref(database, `earn_features/${featureKey}`);
-            await set(featureRef, isEnabled);
-            
-            const featureName = featureKey.replace(/_/g, ' ').toUpperCase();
-            showToast(`${featureName} ${isEnabled ? 'ENABLED' : 'DISABLED'}`);
-            
-            console.log(`Updated ${featureKey}: ${isEnabled}`);
-            
-        } catch (error) {
-            console.error('Error updating feature:', error);
-            showToast('Error updating feature: ' + error.message);
-            
-            // Revert switch on error
-            const switchElement = document.getElementById(featureMap[featureKey]);
-            if (switchElement) {
-                switchElement.checked = !isEnabled;
-            }
-        }
-    }
+        // Load all features from Firebase
+        function loadFeatures() {
+            featureMap.forEach(feature => {
+                const featureCard = document.createElement('div');
+                featureCard.className = 'feature-card';
+                featureCard.innerHTML = `
+                    <div class="switch-container">
+                        <h3>${feature.name}</h3>
+                        <label class="switch">
+                            <input type="checkbox" id="${feature.id}">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                `;
+                featuresContainer.appendChild(featureCard);
 
-    // Authentication check
-    onAuthStateChanged(auth, (user) => {
-        if (!user) {
-            showToast('Please log in');
-            setTimeout(() => {
-                window.location.href = 'index.html';
-            }, 2000);
-            return;
-        }
-
-        if (user.email !== 'reshamchaudhary922@gmail.com') {
-            showToast('Access denied - unauthorized user');
-            setTimeout(() => {
-                window.location.href = 'index.html';
-            }, 2000);
-            return;
+                // Listen for changes in Firebase
+                onValue(ref(db, `earn_features/${feature.id}`), (snapshot) => {
+                    const isEnabled = snapshot.val() || false;
+                    const switchElement = document.getElementById(feature.id);
+                    switchElement.checked = isEnabled;
+                    
+                    // Remove previous event listener to prevent multiple bindings
+                    switchElement.onchange = null;
+                    
+                    // Add new event listener
+                    switchElement.onchange = (e) => {
+                        updateFeature(feature.id, e.target.checked);
+                    };
+                });
+            });
         }
 
-        console.log('User authenticated:', user.email);
-        showToast('Loading features...');
-        
-        // Load features after authentication
-        setTimeout(() => {
-            loadFeatures();
-        }, 1000);
-    });
-
-    // Remove the Font Awesome check since it's causing the 404
-    console.log('Script loaded successfully');
-
-</script>
+        // Update feature in Firebase
+        function updateFeature(featureId, isEnabled) {
+            set(ref(db, `earn_features/${featureId}`), isEnabled)
+                .then(() => {
+                    showToast(`${featureId} feature updated`);
+                })
+                .catch((error) => {
+                    showToast(`Failed to update ${featureId}`);
+                    console.error(error);
+                });
+        }
+    </script>
 </body>
 </html>
