@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Send Multi Notifications - FireAuth</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" rel="stylesheet" integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" crossorigin="anonymous">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            min-height: 100vh;
+            display: flex;
+            overflow-x: auto;
+            position: relative;
+            font-size: 16px;
+        }
+
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: -2;
+        }
+
+        .bg-animation::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, 
+                transparent 0%, 
+                rgba(255, 255, 255, 0.1) 25%, 
+                transparent 50%, 
+                rgba(255, 255, 255, 0.1) 75%, 
+                transparent 100%);
+            animation: shimmer 20s infinite linear;
+        }
+
+        @keyframes shimmer {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .geometric-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .shape {
+            position: absolute;
+            opacity: 0.1;
+            animation: float-shapes 15s infinite ease-in-out;
+        }
+
+        .shape:nth-child(1) {
+            top: 10%;
+            left: 10%;
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            border-radius: 20px;
+            animation-delay: 0s;
+        }
+
+        .shape:nth-child(2) {
+            top: 20%;
+            right: 15%;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(45deg, #4ecdc4, #44a08d);
+            border-radius: 50%;
+            animation-delay: 2s;
+        }
+
+        .shape:nth-child(3) {
+            bottom: 20%;
+            left: 20%;
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(45deg, #a8e6cf, #88d8c0);
+            border-radius: 30px;
+            animation-delay: 4s;
+        }
+
+        .shape:nth-child(4) {
+            bottom: 30%;
+            right: 10%;
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(45deg, #ffd93d, #ff6b6b);
+            border-radius: 15px;
+            animation-delay: 6s;
+        }
+
+        @keyframes float-shapes {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+
+        .sidebar {
+            width: 250px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(30px);
+            border-right: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            max-height: 100vh;
+            overflow-y: auto;
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.15);
+            z-index: 10;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+        }
+
+        .sidebar::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .sidebar h2 {
+            color: white;
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .sidebar a {
+            display: block;
+            color: white;
+            text-decoration: none;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .sidebar a:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateX(5px);
+        }
+
+        .sidebar a.active {
+            background: rgba(255, 71, 87, 0.3);
+        }
+
+        .main-content {
+            margin-left: 270px;
+            padding: 2rem 3rem;
+            width: calc(100% - 270px);
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(30px);
+            border-radius: 25px;
+            padding: 2rem 3rem;
+            box-shadow: 
+                0 25px 45px rgba(0, 0, 0, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            animation: containerGlow 4s infinite alternate;
+            max-width: 90vw;
+            margin: 0 auto;
+        }
+
+        @keyframes containerGlow {
+            0% { box-shadow: 0 25px 45px rgba(0, 0, 0, 0.15), 0 0 30px rgba(102, 126, 234, 0.3); }
+            100% { box-shadow: 0 25px 45px rgba(0, 0, 0, 0.15), 0 0 50px rgba(118, 75, 162, 0.4); }
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .toast.show {
+            opacity: 1;
+        }
+
+        .user-card {
+            transition: background-color 0.3s ease;
+        }
+
+        .user-card.selected {
+            background-color: rgba(239, 68, 68, 0.3);
+        }
+
+        @media screen and (min-width: 1024px) {
+            .main-content {
+                padding: 3rem 4rem;
+            }
+
+            .container {
+                padding: 3rem 4rem;
+                max-width: 85vw;
+            }
+        }
+
+        @media screen and (min-width: 1440px) {
+            .container {
+                max-width: 80vw;
+            }
+        }
+
+        @media screen and (min-width: 1920px) {
+            .container {
+                max-width: 75vw;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-animation"></div>
+    <div class="geometric-bg">
+        <div class="shape"></div>
+        <div class="shape"></div>
+        <div class="shape"></div>
+        <div class="shape"></div>
+    </div>
+
+    <div class="sidebar">
+        <h2>Admin Panel</h2>
+        <a href="adminstatictis.html">Dashboard</a>
+        <a href="user_rank.html">User Rankings</a>
+        <a href="config_coins.html">Configure Coins</a>
+        <a href="send_email.html">Send Email</a>
+        <a href="generate_bonus.html">Generate Bonus</a>
+        <a href="search.html">Search Users</a>
+        <a href="manage_withdrawal.html">Manage Withdrawals</a>
+        <a href="manage_users.html">Manage Users</a>
+        <a href="manage_coins.html">Manage Coins</a>
+        <a href="manage_staff_applications.html">Manage Staff Applications</a>
+        <a href="manage_suggestions.html">Manage Suggestions</a>
+        <a href="usdmanage.html">Manage Withdrawals USD</a>
+        <a href="facebook&insta.html">Social Ads Settings</a>
+        <a href="yotube.html">YouTube Settings</a>
+        <a href="tiktok.html">TikTok Settings</a>
+        <a href="game.html">Manage Game</a>
+        <a href="movie.html">Manage Movie</a>
+        <a href="admin_diamond.html">Manage Diamonds</a>
+        <a href="admin_free_net.html">Manage Data Pack</a>
+        <a href="admin_subscription_approve.html">Manage Subscriptions</a>
+        <a href="change_password.html">Manage Password</a>
+        <a href="deposit.html">Manage Deposit</a>
+        <a href="earn.html">Manage Earn</a>
+        <a href="minitask.html">Manage Mini Task</a>
+        <a href="admin_control_earn_features.html">Control Earn Features</a>
+        <a href="admin_kyc_list.html">Manage KYC</a>
+        <a href="admin_promotion.html">Manage Promotions</a>
+        <a href="admin_send_notifications.html">Send Notifications</a>
+        <a href="admin_update_text.html">Update Text</a>
+        <a href="admin_send_multi_notifications.html" class="active">Send Multi Notifications</a>
+    </div>
+
+    <div class="main-content">
+        <div class="container">
+            <h3 class="text-2xl font-semibold text-red-500 mb-6 text-center">Send Multi Notifications</h3>
+            <div class="bg-gray-800 p-6 rounded-lg shadow-lg mb-6">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:space-x-4 mb-4">
+                    <div class="flex-1 relative">
+                        <input type="text" id="searchInput" class="w-full p-2 rounded bg-gray-700 text-white border border-gray-600 focus:outline-none focus:border-red-500" placeholder="Search by name, email, phone, UID">
+                        <i class="fas fa-search absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    </div>
+                    <button id="selectAllBtn" class="mt-4 sm:mt-0 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition">
+                        <i class="fas fa-check-double mr-1"></i> Select All
+                    </button>
+                </div>
+                <div class="flex flex-col sm:flex-row sm:items-end sm:space-x-4 mb-4">
+                    <div class="flex-1">
+                        <label for="titleInput" class="text-white font-semibold mb-2 block">Notification Title</label>
+                        <input type="text" id="titleInput" class="w-full p-2 rounded bg-gray-700 text-white border border-gray-600 focus:outline-none focus:border-red-500" placeholder="Enter notification title">
+                    </div>
+                    <div class="flex-1">
+                        <label for="bodyInput" class="text-white font-semibold mb-2 block">Notification Body</label>
+                        <input type="text" id="bodyInput" class="w-full p-2 rounded bg-gray-700 text-white border border-gray-600 focus:outline-none focus:border-red-500" placeholder="Enter notification body">
+                    </div>
+                    <button id="sendBtn" class="mt-4 sm:mt-0 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition">
+                        <i class="fas fa-paper-plane mr-1"></i> Send
+                    </button>
+                </div>
+            </div>
+            <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                <div id="userList" class="grid grid-cols-1 gap-4"></div>
+                <p id="noUsers" class="text-white text-center hidden">No users found</p>
+            </div>
+            <div class="toast" id="toast"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js';
+        import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js';
+        import { getDatabase, ref, get, set } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyD14wwgcUIyiPl_qXvx7CtQTO2DEy465II",
+            authDomain: "my-video-earn-app12.firebaseapp.com",
+            databaseURL: "https://my-video-earn-app12-default-rtdb.firebaseio.com",
+            projectId: "my-video-earn-app12",
+            storageBucket: "my-video-earn-app12.firebasestorage.app",
+            messagingSenderId: "967539655660",
+            appId: "1:967539655660:web:95e773e701d35a252936c9",
+            measurementId: "G-DPWBZT3RN5"
+        };
+
+        // Initialize Firebase
+        let app;
+        try {
+            app = initializeApp(firebaseConfig);
+            console.log('Firebase initialized:', app);
+        } catch (error) {
+            console.error('Firebase initialization failed:', error);
+            showToast('Failed to initialize Firebase');
+        }
+
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+        const usersRef = ref(db, 'users');
+
+        // UI Elements
+        const toast = document.getElementById('toast');
+        const searchInput = document.getElementById('searchInput');
+        const titleInput = document.getElementById('titleInput');
+        const bodyInput = document.getElementById('bodyInput');
+        const selectAllBtn = document.getElementById('selectAllBtn');
+        const sendBtn = document.getElementById('sendBtn');
+        const userList = document.getElementById('userList');
+        const noUsers = document.getElementById('noUsers');
+
+        let users = [];
+        let filteredUsers = [];
+        let selectedUsers = new Set();
+
+        // Show Toast Notification
+        function showToast(message) {
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), Math.max(3000, message.length * 100));
+        }
+
+        // Auth Check
+        onAuthStateChanged(auth, (user) => {
+            console.log('Auth state changed:', user);
+            if (!user || user.email !== 'reshamchaudhary922@gmail.com') {
+                console.log('Access denied: Invalid user or email');
+                showToast('Access denied');
+                window.location.href = 'index.html';
+            } else {
+                console.log('User authenticated, fetching users');
+                loadUsers();
+            }
+        });
+
+        // Generate UUID
+        function generateUUID() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
+
+        // Load Users
+        async function loadUsers() {
+            try {
+                const snapshot = await get(usersRef);
+                users = [];
+                snapshot.forEach((child) => {
+                    const uid = child.key;
+                    const user = child.val();
+                    users.push({
+                        uid,
+                        username: user.username || '',
+                        email: user.email || '',
+                        phone: user.phone || ''
+                    });
+                });
+
+                console.log(`Fetched ${users.length} users`);
+                users.sort((a, b) => a.username.toLowerCase().localeCompare(b.username.toLowerCase()));
+                filteredUsers = [...users];
+                renderUsers();
+            } catch (error) {
+                console.error('Error fetching users:', error);
+                showToast(`Error fetching users: ${error.message}`);
+            }
+        }
+
+        // Filter Users
+        function filterUsers(query) {
+            const lowerQuery = query.toLowerCase();
+            filteredUsers = users.filter(user =>
+                user.username.toLowerCase().includes(lowerQuery) ||
+                user.email.toLowerCase().includes(lowerQuery) ||
+                user.phone.includes(lowerQuery) ||
+                user.uid.toLowerCase().includes(lowerQuery)
+            );
+            renderUsers();
+        }
+
+        // Render Users
+        function renderUsers() {
+            userList.innerHTML = '';
+            filteredUsers.forEach((user) => {
+                const card = document.createElement('div');
+                card.className = `user-card bg-gray-700 p-4 rounded-lg flex items-center gap-4 ${selectedUsers.has(user.uid) ? 'selected' : ''}`;
+                card.innerHTML = `
+                    <input type="checkbox" class="user-checkbox" data-uid="${user.uid}" ${selectedUsers.has(user.uid) ? 'checked' : ''}>
+                    <div class="flex-1">
+                        <p class="text-white font-semibold">UID: ${user.uid}</p>
+                        <p class="text-white">Username: ${user.username || 'N/A'}</p>
+                        <p class="text-white">Email: ${user.email || 'N/A'}</p>
+                        <p class="text-white">Phone: ${user.phone || 'N/A'}</p>
+                    </div>
+                `;
+                userList.appendChild(card);
+            });
+
+            // Add checkbox listeners
+            document.querySelectorAll('.user-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', (e) => {
+                    const uid = e.target.dataset.uid;
+                    if (e.target.checked) {
+                        selectedUsers.add(uid);
+                    } else {
+                        selectedUsers.delete(uid);
+                    }
+                });
+            });
+
+            noUsers.style.display = filteredUsers.length === 0 ? 'block' : 'none';
+        }
+
+        // Search Input Listener
+        searchInput.addEventListener('input', (e) => {
+            filterUsers(e.target.value);
+        });
+
+        // Select All Button
+        selectAllBtn.addEventListener('click', () => {
+            selectedUsers.clear();
+            filteredUsers.forEach(user => selectedUsers.add(user.uid));
+            renderUsers();
+        });
+
+        // Send Notification
+        sendBtn.addEventListener('click', async () => {
+            const title = titleInput.value.trim();
+            const body = bodyInput.value.trim();
+
+            if (!title || !body || selectedUsers.size === 0) {
+                showToast('Fill all fields and select users');
+                return;
+            }
+
+            try {
+                const promises = Array.from(selectedUsers).map(async (uid) => {
+                    const notifId = generateUUID();
+                    const notification = { title, body };
+                    await set(ref(db, `notifications/${uid}/${notifId}`), notification);
+                });
+
+                await Promise.all(promises);
+                showToast(`Notification sent to ${selectedUsers.size} users`);
+                titleInput.value = '';
+                bodyInput.value = '';
+                selectedUsers.clear();
+                renderUsers();
+            } catch (error) {
+                console.error('Error sending notifications:', error);
+                showToast(`Error: ${error.message}`);
+            }
+        });
+
+        // Fallback for Font Awesome failure
+        window.addEventListener('load', () => {
+            if (!document.querySelector('.fa-search')) {
+                console.warn('Font Awesome icons not loaded');
+            }
+        });
+    </script>
+</body>
+</html>
