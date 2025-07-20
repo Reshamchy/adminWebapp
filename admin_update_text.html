@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Update Text - FireAuth</title>
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" rel="stylesheet"/>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" rel="stylesheet" integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" crossorigin="anonymous">
+  <link href="/dist/output.css" rel="stylesheet">
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
@@ -16,6 +16,7 @@
       display: flex;
       overflow-x: auto;
       position: relative;
+      font-size: 16px;
     }
 
     .bg-animation {
@@ -24,8 +25,8 @@
       left: 0;
       width: 100%;
       height: 100%;
-      z-index: -2;
       overflow: hidden;
+      z-index: -2;
     }
 
     .bg-animation::before {
@@ -35,11 +36,11 @@
       left: -50%;
       width: 200%;
       height: 200%;
-      background: linear-gradient(45deg,
-        transparent 0%,
-        rgba(255,255,255,0.1) 25%,
-        transparent 50%,
-        rgba(255,255,255,0.1) 75%,
+      background: linear-gradient(45deg, 
+        transparent 0%, 
+        rgba(255, 255, 255, 0.1) 25%, 
+        transparent 50%, 
+        rgba(255, 255, 255, 0.1) 75%, 
         transparent 100%);
       animation: shimmer 20s infinite linear;
     }
@@ -49,6 +50,16 @@
       100% { transform: rotate(360deg); }
     }
 
+    .geometric-bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      overflow: hidden;
+    }
+
     .shape {
       position: absolute;
       opacity: 0.1;
@@ -56,25 +67,42 @@
     }
 
     .shape:nth-child(1) {
-      top: 10%; left: 10%; width: 80px; height: 80px;
-      background: linear-gradient(45deg, #ff6b6b, #ee5a24); border-radius: 20px;
+      top: 10%;
+      left: 10%;
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+      border-radius: 20px;
+      animation-delay: 0s;
     }
 
     .shape:nth-child(2) {
-      top: 20%; right: 15%; width: 60px; height: 60px;
-      background: linear-gradient(45deg, #4ecdc4, #44a08d); border-radius: 50%;
+      top: 20%;
+      right: 15%;
+      width: 60px;
+      height: 60px;
+      background: linear-gradient(45deg, #4ecdc4, #44a08d);
+      border-radius: 50%;
       animation-delay: 2s;
     }
 
     .shape:nth-child(3) {
-      bottom: 20%; left: 20%; width: 100px; height: 100px;
-      background: linear-gradient(45deg, #a8e6cf, #88d8c0); border-radius: 30px;
+      bottom: 20%;
+      left: 20%;
+      width: 100px;
+      height: 100px;
+      background: linear-gradient(45deg, #a8e6cf, #88d8c0);
+      border-radius: 30px;
       animation-delay: 4s;
     }
 
     .shape:nth-child(4) {
-      bottom: 30%; right: 10%; width: 70px; height: 70px;
-      background: linear-gradient(45deg, #ffd93d, #ff6b6b); border-radius: 15px;
+      bottom: 30%;
+      right: 10%;
+      width: 70px;
+      height: 70px;
+      background: linear-gradient(45deg, #ffd93d, #ff6b6b);
+      border-radius: 15px;
       animation-delay: 6s;
     }
 
@@ -85,15 +113,36 @@
 
     .sidebar {
       width: 250px;
-      background: rgba(255,255,255,0.1);
+      background: rgba(255, 255, 255, 0.1);
       backdrop-filter: blur(30px);
+      border-right: 1px solid rgba(255, 255, 255, 0.2);
       padding: 20px;
       position: fixed;
-      top: 0; left: 0;
+      top: 0;
+      left: 0;
       max-height: 100vh;
       overflow-y: auto;
+      box-shadow: 0 25px 45px rgba(0, 0, 0, 0.15);
       z-index: 10;
       scrollbar-width: thin;
+      scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+    }
+
+    .sidebar::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .sidebar::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .sidebar::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 4px;
+    }
+
+    .sidebar::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.5);
     }
 
     .sidebar h2 {
@@ -106,19 +155,22 @@
     .sidebar a {
       display: block;
       color: white;
+      text-decoration: none;
       padding: 15px;
       margin-bottom: 10px;
       border-radius: 10px;
       transition: all 0.3s ease;
+      font-weight: 500;
+      font-size: 0.9rem;
     }
 
     .sidebar a:hover {
-      background: rgba(255,255,255,0.15);
+      background: rgba(255, 255, 255, 0.15);
       transform: translateX(5px);
     }
 
     .sidebar a.active {
-      background: rgba(255,71,87,0.3);
+      background: rgba(255, 71, 87, 0.3);
     }
 
     .main-content {
@@ -128,12 +180,23 @@
     }
 
     .container {
-      background: rgba(255,255,255,0.1);
+      background: rgba(255, 255, 255, 0.1);
       backdrop-filter: blur(30px);
       border-radius: 25px;
       padding: 2rem 3rem;
+      box-shadow: 
+        0 25px 45px rgba(0, 0, 0, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      animation: containerGlow 4s infinite alternate;
       max-width: 90vw;
       margin: 0 auto;
+    }
+
+    @keyframes containerGlow {
+      0% { box-shadow: 0 25px 45px rgba(0, 0, 0, 0.15), 0 0 30px rgba(102, 126, 234, 0.3); }
+      100% { box-shadow: 0 25px 45px rgba(0, 0, 0, 0.15), 0 0 50px rgba(118, 75, 162, 0.4); }
     }
 
     .toast {
@@ -141,7 +204,7 @@
       bottom: 20px;
       left: 50%;
       transform: translateX(-50%);
-      background: rgba(0,0,0,0.8);
+      background: rgba(0, 0, 0, 0.8);
       color: white;
       padding: 10px 20px;
       border-radius: 8px;
@@ -155,12 +218,12 @@
       opacity: 1;
     }
 
-    /* ✅ Fixed Switch CSS with label */
     .switch {
       position: relative;
       display: inline-block;
-      width: 60px;
-      height: 34px;
+      width: 48px;
+      height: 24px;
+      vertical-align: middle;
     }
 
     .switch input {
@@ -177,19 +240,19 @@
       right: 0;
       bottom: 0;
       background-color: #ccc;
-      transition: .4s;
-      border-radius: 34px;
+      transition: 0.4s;
+      border-radius: 24px;
     }
 
     .slider:before {
       position: absolute;
       content: "";
-      height: 26px;
-      width: 26px;
-      left: 4px;
-      bottom: 4px;
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
       background-color: white;
-      transition: .4s;
+      transition: 0.4s;
       border-radius: 50%;
     }
 
@@ -198,18 +261,70 @@
     }
 
     input:checked + .slider:before {
-      transform: translateX(26px);
+      transform: translateX(24px);
+    }
+
+    @media screen and (min-width: 1024px) {
+      .main-content {
+        padding: 3rem 4rem;
+      }
+
+      .container {
+        padding: 3rem 4rem;
+        max-width: 85vw;
+      }
+    }
+
+    @media screen and (min-width: 1440px) {
+      .container {
+        max-width: 80vw;
+      }
+    }
+
+    @media screen and (min-width: 1920px) {
+      .container {
+        max-width: 75vw;
+      }
     }
   </style>
 </head>
 <body>
   <div class="bg-animation"></div>
-  <div class="shape"></div><div class="shape"></div><div class="shape"></div><div class="shape"></div>
+  <div class="geometric-bg">
+    <div class="shape"></div>
+    <div class="shape"></div>
+    <div class="shape"></div>
+    <div class="shape"></div>
+  </div>
 
   <div class="sidebar">
     <h2>Admin Panel</h2>
+    <a href="adminstatictis.html">Dashboard</a>
+    <a href="user_rank.html">User Rankings</a>
+    <a href="config_coins.html">Configure Coins</a>
+    <a href="send_email.html">Send Email</a>
+    <a href="generate_bonus.html">Generate Bonus</a>
+    <a href="search.html">Search Users</a>
+    <a href="manage_withdrawal.html">Manage Withdrawals</a>
+    <a href="manage_users.html">Manage Users</a>
+    <a href="manage_coins.html">Manage Coins</a>
+    <a href="manage_staff_applications.html">Manage Staff Applications</a>
+    <a href="manage_suggestions.html">Manage Suggestions</a>
+    <a href="usdmanage.html">Manage Withdrawals USD</a>
+    <a href="facebook&insta.html">Social Ads Settings</a>
+    <a href="yotube.html">YouTube Settings</a>
+    <a href="tiktok.html">TikTok Settings</a>
+    <a href="game.html">Manage Game</a>
+    <a href="movie.html">Manage Movie</a>
+    <a href="admin_diamond.html">Manage Diamonds</a>
+    <a href="admin_free_net.html">Manage Data Pack</a>
+    <a href="admin_subscription_approve.html">Manage Subscriptions</a>
+    <a href="change_password.html">Manage Password</a>
+    <a href="deposit.html">Manage Deposit</a>
+    <a href="earn.html">Manage Earn</a>
+    <a href="minitask.html">Manage Mini Task</a>
+    <a href="admin_control_earn_features.html">Control Earn Features</a>
     <a href="admin_update_text.html" class="active">Update Text</a>
-    <!-- Add other links as needed -->
   </div>
 
   <div class="main-content">
@@ -223,7 +338,6 @@
           </div>
           <div class="flex items-center space-x-4">
             <label for="showSwitch" class="text-white font-semibold">Show Message</label>
-            <!-- ✅ Use label to wrap input and slider -->
             <label class="switch">
               <input type="checkbox" id="showSwitch">
               <span class="slider"></span>
@@ -244,17 +358,26 @@
     import { getDatabase, ref, get, update } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js';
 
     const firebaseConfig = {
-    apiKey: "AIzaSyD14wwgcUIyiPl_qXvx7CtQTO2DEy465II",
-  authDomain: "my-video-earn-app12.firebaseapp.com",
-  databaseURL: "https://my-video-earn-app12-default-rtdb.firebaseio.com",
-  projectId: "my-video-earn-app12",
-  storageBucket: "my-video-earn-app12.firebasestorage.app",
-  messagingSenderId: "967539655660",
-  appId: "1:967539655660:web:95e773e701d35a252936c9",
-  measurementId: "G-DPWBZT3RN5"
+      apiKey: "AIzaSyD14wwgcUIyiPl_qXvx7CtQTO2DEy465II",
+      authDomain: "my-video-earn-app12.firebaseapp.com",
+      databaseURL: "https://my-video-earn-app12-default-rtdb.firebaseio.com",
+      projectId: "my-video-earn-app12",
+      storageBucket: "my-video-earn-app12.firebasestorage.app",
+      messagingSenderId: "967539655660",
+      appId: "1:967539655660:web:95e773e701d35a252936c9",
+      measurementId: "G-DPWBZT3RN5"
     };
 
-    const app = initializeApp(firebaseConfig);
+    // Initialize Firebase
+    let app;
+    try {
+      app = initializeApp(firebaseConfig);
+      console.log('Firebase initialized successfully');
+    } catch (error) {
+      console.error('Firebase initialization error:', error);
+      showToast('Failed to initialize Firebase: ' + error.message);
+    }
+
     const auth = getAuth(app);
     const db = getDatabase(app);
     const adminTextRef = ref(db, 'adminText');
@@ -265,15 +388,22 @@
     const saveBtn = document.getElementById('saveBtn');
 
     function showToast(message) {
+      if (!toast) {
+        console.error('Toast element not found');
+        return;
+      }
       toast.textContent = message;
       toast.classList.add('show');
-      setTimeout(() => toast.classList.remove('show'), 3000);
+      setTimeout(() => toast.classList.remove('show'), Math.max(3000, message.length * 100));
     }
 
     onAuthStateChanged(auth, (user) => {
+      console.log('Auth state changed:', user ? user.email : 'No user');
       if (!user || user.email !== 'reshamchaudhary922@gmail.com') {
-        showToast('Access denied');
-        window.location.href = 'index.html';
+        showToast('Access denied: Unauthorized user');
+        setTimeout(() => {
+          window.location.href = 'index.html';
+        }, 1000);
       } else {
         loadData();
       }
@@ -288,7 +418,8 @@
           showSwitch.checked = data.show || false;
         }
       } catch (error) {
-        showToast('Failed to load data');
+        console.error('Error loading data:', error);
+        showToast('Failed to load data: ' + error.message);
       }
     }
 
@@ -310,7 +441,15 @@
         await update(adminTextRef, updateData);
         showToast('Settings updated successfully!');
       } catch (error) {
-        showToast('Failed to update settings');
+        console.error('Error updating settings:', error);
+        showToast('Failed to update settings: ' + error.message);
+      }
+    });
+
+    // Fallback for Font Awesome failure
+    window.addEventListener('load', () => {
+      if (!document.querySelector('.fa-save')) {
+        console.warn('Font Awesome icons not loaded');
       }
     });
   </script>
