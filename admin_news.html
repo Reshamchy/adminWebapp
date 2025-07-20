@@ -218,6 +218,14 @@
             opacity: 1;
         }
 
+        .news-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
         @media screen and (min-width: 1024px) {
             .main-content {
                 padding: 3rem 4rem;
@@ -289,7 +297,7 @@
     <div class="main-content">
         <div class="container">
             <h3 class="text-2xl font-semibold text-red-500 mb-6 text-center">Post News</h3>
-            <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+            <div class="bg-gray-800 p-6 rounded-lg shadow-lg mb-8">
                 <div class="flex flex-col space-y-4">
                     <div>
                         <label for="titleInput" class="text-white font-semibold mb-2 block">News Title</label>
@@ -304,6 +312,8 @@
                     </button>
                 </div>
             </div>
+            <h3 class="text-2xl font-semibold text-red-500 mb-6 text-center">News History</h3>
+            <div id="newsHistory" class="space-y-4"></div>
             <div class="toast" id="toast"></div>
         </div>
     </div>
@@ -311,7 +321,7 @@
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js';
         import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js';
-        import { getDatabase, ref, push, set } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js';
+        import { getDatabase, ref, push, set, onValue, remove } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js';
 
         const firebaseConfig = {
             apiKey: "AIzaSyD14wwgcUIyiPl_qXvx7CtQTO2DEy465II",
@@ -343,6 +353,7 @@
         const titleInput = document.getElementById('titleInput');
         const messageInput = document.getElementById('messageInput');
         const postBtn = document.getElementById('postBtn');
+        const newsHistory = document.getElementById('newsHistory');
 
         // Show Toast Notification
         function showToast(message) {
@@ -360,6 +371,7 @@
                 window.location.href = 'index.html';
             } else {
                 console.log('User authenticated');
+                loadNewsHistory();
             }
         });
 
@@ -390,6 +402,46 @@
                 showToast(`Failed to post news: ${error.message}`);
             }
         });
+
+        // Load and Display News History
+        function loadNewsHistory() {
+            onValue(newsRef, (snapshot) => {
+                newsHistory.innerHTML = '';
+                const newsData = snapshot.val();
+                if (newsData) {
+                    Object.entries(newsData).forEach(([key, news]) => {
+                        const newsItem = document.createElement('div');
+                        newsItem.className = 'news-item';
+                        const date = new Date(news.timestamp).toLocaleString();
+                        newsItem.innerHTML = `
+                            <h4 class="text-white font-semibold">${news.title}</h4>
+                            <p class="text-gray-300">${news.message}</p>
+                            <p class="text-gray-400 text-sm">Posted: ${date}</p>
+                            <button class="delete-btn bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition mt-2" data-key="${key}">
+                                <i class="fas fa-trash mr-1"></i> Delete
+                            </button>
+                        `;
+                        newsHistory.appendChild(newsItem);
+                    });
+
+                    // Add Delete Button Listeners
+                    document.querySelectorAll('.delete-btn').forEach(button => {
+                        button.addEventListener('click', async (e) => {
+                            const key = e.target.dataset.key;
+                            try {
+                                await remove(ref(db, `news/${key}`));
+                                showToast('News deleted');
+                            } catch (error) {
+                                console.error('Error deleting news:', error);
+                                showToast(`Failed to delete news: ${error.message}`);
+                            }
+                        });
+                    });
+                } else {
+                    newsHistory.innerHTML = '<p class="text-gray-300 text-center">No news posted yet.</p>';
+                }
+            });
+        }
 
         // Fallback for Font Awesome failure
         window.addEventListener('load', () => {
